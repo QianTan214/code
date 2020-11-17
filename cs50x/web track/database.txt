@@ -1,0 +1,73 @@
+terms:
+make queries
+run queries
+sql syntax
+
+
+
+db = SQL("sqlite:///finance.db")
+
+sqlite3 finance.db
+
+.quit 退出sqlite
+
+.schema users # 查看users table
+
+.tables # 查看有哪些table
+
+
+.mode columns
+.headers yes
+
+
+create table "registrants" 
+(  
+"id" integer primary key,
+"name" varchar(255), 
+"email" varchar(255)
+);
+
+insert into registrants (name, email) values ("alice", "alice@example.com");
+
+select * from registrants;
+
+select * from flights where origin in ("New York", "Lima");
+where origin like %a%
+
+functions: max min count average sum ...
+
+
+update flights set duration = 430 where origin = "New York" and destination = "London";
+
+delete from flights where destination = "Tokyo";
+
+other clauses:
+limit
+order by 
+group by
+having (group by里用)
+
+
+select first, origin from flights join passengers on passengers.flight_id = flights.id;
+
+
+join:
+join/inner join
+left outer join
+right outer join
+full outer join
+
+
+
+create index:
+create index name_index on passengers(last);
+
+
+sql injection attack:
+select * from users where username = "hacker"--" and password = ""; 
+假设type in hacker"--
+--之后的内容都被ignored， bypass the password check
+
+race condition
+
+

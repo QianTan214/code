@@ -1,0 +1,58 @@
+django-admin
+
+django web application
+
+dynamically generated html and css
+
+
+python manage.py runserver
+
+python manage.py startapp hello
+
+
+views: view user wants to see
+
+
+django-admin startproject airline
+
+python manage.py startapp flights(application)
+
+go to setting.py, add "flights" into INSTALLED_APPS
+
+go to urls.py, import include, path("flights/", include("flights.urls"))
+
+go to flights folder, create a new file called urls.py
+
+在models.py里，写python class
+
+
+python manage.py makemigrations
+
+python manage.py migrate
+
+python manage.py shell
+
+use python commands, no need to use sql:
+from flights.models import Flight
+
+f = Flight(origin = "New York", destination = "London", duration =  415)
+f.save()
+
+Flight.objects.all() # 像是select all
+
+flight = flights.first()
+
+flight.id
+flight.origin
+flight.destination
+...
+
+flight.delete()
+
+def __str__(self):
+    return f"{self.id}: {self.origin} to {self.destination}"
+
+python preferred:
+is not None
+
+

@@ -1,0 +1,30 @@
+"""
+dynamically generated html
+
+create a flask web application interact with database
+
+variable {{}}
+
+coditional statement{% %}
+
+user input in a form and generate another html with the name user typed in
+
+
+get: get data from a page
+
+post: update page with data
+
+route by default only accpet get method
+
+
+
+
+
+
+
+
+
+
+
+
+"""

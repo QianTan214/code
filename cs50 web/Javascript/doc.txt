@@ -1,0 +1,127 @@
+client side
+
+control + shift + b表情
+
+event driven programming
+
+event: user clicks a button, selects from a drop-dwon, submit a from
+
+event listener
+
+dom: document object model
+
+innnerhtml property
+
+. notation access property
+
+=== value and type 
+
+== value can be different types
+
+const variable = ..
+
+``template literal
+
+alert(`Count is now ${counter}`)
+
+
+you can set a variable equal to a function in javascript
+
+document is a variable
+
+domcontentloaded # once page is loaded, run functions
+
+
+
+function hello(){
+    const heading = document.querySelector("h1")
+    if (heading.innerHTML === "Hello!"){
+    heading.innerHTML = "Goodbye!";
+    } else{
+    heading.innerHTML = "Hello!";
+    }
+}
+
+
+<button onclick = "hello()">Click here</button>
+
+document.querySelector('tag')
+document.querySelector('#id')
+document.querySelector('.class')
+
+
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    // change font color to red
+    document.querySelector("#red").onclick = function(){
+        document.querySelector("#hello").style.color = "red";
+    }
+
+
+<button id = "red">Red</button>
+<button data-color = "red">Red</button>
+
+
+on webpage inspection page, in javasript console, we can run javascript queries.
+names.length
+const names = ["a","b"];
+names[0]
+...
+
+forEach
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+
+        document.querySelectorAll("button").forEach(function(button){
+
+            button.onclick = function(){
+                document.querySelector("#hello").style.color = button.dataset.color;
+            }
+        });
+    });
+</script>
+
+
+=> equal to function()
+
+
+<body>
+    <h1 id = "hello">Hello!</h1>
+    <button data-color = "red">Red</button>
+    <button data-color = "green">Green</button>
+    <button data-color = "blue">Blue</button>
+</body>
+
+
+<body>
+    <h1 id = "hello">Hello!</h1>
+    <select>
+        <option value = "black">Black</option>
+        <option value = "red">Red</option>
+        <option value = "blue">Blue</option>
+        <option value = "green">Green</option>         
+    </select>
+</body>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){ // () => {}
+
+        document.querySelector("select").onchange = function(){
+            document.querySelector("#hello").style.color = this.value;
+        }
+    });
+</script>
+
+
+events:
+onclick
+onmouseover
+onkeydown
+onkeyup
+onload
+onblur

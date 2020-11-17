@@ -1,0 +1,12 @@
+python webframe Flask generate dynamic html
+connect web application to database
+
+
+MVC model view controller
+
+API key to access info on other websites
+
+
+GET: get data from webpage
+
+POST: submit data via a form

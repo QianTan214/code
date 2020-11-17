@@ -1,0 +1,7 @@
+in terminal
+
+python
+from app import db
+db.create_all()
+then a database will be created
+exit()

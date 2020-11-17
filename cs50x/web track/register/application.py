@@ -1,0 +1,26 @@
+from flask import Flask, redirect, render_template,request
+
+# from cs50 import SQL
+
+app = Flask (__name__)
+
+db = SQL("sqlite:///lecture.db")
+
+@app.route("/")
+def index():
+    rows = db.execute("select * from registrants")
+    return render_template("index.html", rows = rows)
+
+@app.route("/register", methods=["GET","POST"])
+def register():
+    if request.method == "GET":
+        return render_template("register.html")
+    else:
+        name = request.form.get("name")
+        if not name:
+            return render_template("apology.html", message = "you must provide a name.")
+        email = request.form.get("email")
+        if not email:
+            return render_template("apology.html", message = "you must provide an email address.")
+        db.execute("insert into registrants (name, email) values (:name, :email)" , name = name, email=email)
+        return redirect("/")

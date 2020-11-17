@@ -1,0 +1,19 @@
+todo:
+
+need 2D array to represent board
+
+need 2D array to represent solved board
+
+need a location variable to track empty tile
+
+need a listener for keystrokes
+
+board function to make moves
+
+randomise the board
+
+functinon to display board on screen
+
+function to solve the game
+
+a "game over" screen
