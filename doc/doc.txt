@@ -1,0 +1,2948 @@
+from flask import Flask, flash, redirect, render_template, \
+     request, url_for
+
+The Application Factory
+# ===================================================================================
+
+Create the flaskr directory and add the __init__.py file. 
+The __init__.py serves double duty: it will contain the application factory, 
+and it tells Python that the flaskr directory should be treated as a package.
+
+app = Flask(__name__, instance_relative_config=True)
+this creates the Flask instance.
+
+SECRET_KEY is used by Flask and extensions to keep data safe. 
+It’s set to 'dev' to provide a convenient value during development, 
+but it should be overridden with a random value when deploying.
+
+
+
+
+you can make the server publicly available simply by adding -- host=0.0.0.0
+to the command line:
+
+$ flask run --host=0.0.0.0
+This tells your operating system to listen on all public IPs.
+
+debug mode: the server will reload itself on code changes
+
+
+
+Routing:
+# ===================================================================================
+Use the route() decorator to bind a function to a URL.
+
+@app.route('/path/<path:subpath>')
+def show_subpath(subpath):
+    # show the subpath after /path/
+    return 'Subpath %s' % escape(subpath)
+
+Converter types:
+string: (default) accepts any text without a slash
+path: like string but also accepts slashes
+uuid: accepts UUID strings
+
+
+URL:
+# ===================================================================================
+
+Unique URLs / Redirection Behavior:
+@app.route('/projects/')
+The canonical URL for the projects endpoint has a trailing slash. 
+It’s similar to a folder in a file system. 
+
+@app.route('/about')
+The canonical URL for the about endpoint does not have a trailing slash. 
+It’s similar to the pathname of a file.
+
+eg.
+with app.test_request_context():
+    print(url_for('index'))
+    print(url_for('login'))
+    print(url_for('login', next='/'))
+    print(url_for('profile', username='John Doe'))
+
+/
+/login
+/login?next=/
+/user/John%20Doe # %20在URL中指space
+
+
+
+HTTP Methods
+# ===================================================================================
+
+Web applications use different HTTP methods when accessing URLs. 
+By default, a route only answers to GET requests. 
+
+GET: Sends data in unencrypted form to the server. 
+POST: Used to send HTML form data to server. 
+
+eg.
+from flask import request
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        return do_the_login()
+    else:
+        return show_the_login_form()
+
+
+If GET is present, Flask automatically adds support for the HEAD method and 
+handles HEAD requests according to the HTTP RFC. Likewise, 
+OPTIONS is automatically implemented for you.
+
+
+eg.
+
+from flask import Flask, redirect, url_for, request
+app = Flask(__name__)
+
+@app.route('/success/<name>')
+def success(name):
+   return 'welcome %s' % name
+
+@app.route('/login',methods = ['POST', 'GET'])
+def login():
+   if request.method == 'POST':
+      user = request.form['nm']
+      return redirect(url_for('success',name = user))
+   else:
+      user = request.args.get('nm')
+      return redirect(url_for('success',name = user))
+
+
+args − parsed contents of query string which is part of URL after question mark (?).
+args is dictionary object containing a list of pairs of form parameter 
+and its corresponding value.
+
+
+
+Static Files:
+# ===================================================================================
+
+Dynamic web applications also need static files.
+To generate URLs for static files, use the special 'static' endpoint name:
+
+url_for('static', filename='style.css')
+The file has to be stored on the filesystem as static/style.css.
+
+
+Rendering Templates:
+# ===================================================================================
+
+All you have to do is provide the name of the template and the variables 
+you want to pass to the template engine as keyword arguments.
+Flask will look for templates in the templates folder. 
+
+@app.route('/hello/')
+@app.route('/hello/<name>')
+def hello(name=None):
+    return render_template('hello.html', name=name) #变量传入
+
+
+
+# jinja2
+# ===================================================================================
+
+# for loop
+{% for p in data %}
+    {{ p }}
+{% endfor %}
+
+
+# if
+{% if sth %}
+{% else %}
+{% endif %}
+
+
+{% include 'navbar.html' %}
+
+
+
+The Request Object:
+# ===================================================================================
+
+methods attribute: methods = ['GET','POST']
+form attribute: request.form['username']
+
+To access parameters submitted in the URL (?key=value)
+args attribute: searchword = request.args.get('key', '')
+
+
+
+Session (dictionary object):
+# ===================================================================================
+
+Like Cookie, Session data is stored on client. 
+Session is the time interval when a client logs into a server and logs out of it. 
+The data, which is needed to be held across this session, is stored in the client browser.
+
+A session with each client is assigned a Session ID. 
+The Session data is stored on top of cookies and the server signs them cryptographically. 
+For this encryption, a Flask application needs a defined SECRET_KEY.
+
+Session object is also a dictionary object containing key-value pairs of session variables 
+and associated values.
+
+
+Session[‘username’] = ’admin’
+To release a session variable use pop() method.
+
+session.pop('username', None)
+
+@app.route('/logout')
+def logout():
+   # remove the username from the session if it is there
+   session.pop('username', None)
+   return redirect(url_for('index'))
+
+
+Remember which user has logged in
+session["user_id"] = rows[0]["id"]   
+
+
+
+Redirects and Errors:
+# ===================================================================================
+
+from flask import abort, redirect, url_for
+
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
+
+@app.route('/login')
+def login():
+    abort(401)
+    this_is_never_executed()
+
+This is a rather pointless example because a user will be redirected from the index 
+to a page they cannot access (401 means access denied) but it shows how that works.
+
+to abort a request early with an error code, use the abort() function
+
+
+If you want to customize the error page, use the errorhandler() decorator:
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('page_not_found.html'), 404
+
+
+
+Sessions:
+# ===================================================================================
+
+session object allows you to store information specific to a user from one request 
+to the next. 
+
+
+How to generate good secret keys:
+# ===================================================================================
+
+Use the following command to  generate a value for Flask.secret_key (or SECRET_KEY):
+
+import os 
+print(os.urandom(16))
+
+
+
+Flash() method:
+# ===================================================================================
+
+message – the message to be flashed.
+category – the category for the message. 
+
+The following values are recommended: 
+'message' for any kind of message, 
+'error' for errors,
+'info' for information messages
+'warning' for warnings. 
+However any kind of string can be used as category.
+
+Flask’s message flashing so that you can relay messages 
+from one route to another for the user to see.
+
+
+Register:
+# ===================================================================================
+
+@bp.route('/register', methods=('GET', 'POST'))
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        db = get_db()
+        error = None
+
+        if not username:
+            error = 'Username is required.'
+        elif not password:
+            error = 'Password is required.'
+        elif db.execute(
+            'SELECT id FROM user WHERE username = ?', (username,)
+        ).fetchone() is not None:
+            error = 'User {} is already registered.'.format(username)
+
+        if error is None:
+            db.execute(
+                'INSERT INTO user (username, password) VALUES (?, ?)',
+                (username, generate_password_hash(password))
+            )
+            db.commit()
+            return redirect(url_for('auth.login'))
+
+        flash(error)
+
+    return render_template('auth/register.html')
+
+
+
+Login:
+# ===================================================================================
+
+@bp.route('/login', methods=('GET', 'POST'))
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        db = get_db()
+        error = None
+        user = db.execute(
+            'SELECT * FROM user WHERE username = ?', (username,)
+        ).fetchone()
+
+        if user is None:
+            error = 'Incorrect username.'
+        elif not check_password_hash(user['password'], password):
+            error = 'Incorrect password.'
+
+        if error is None:
+            session.clear()
+            session['user_id'] = user['id']
+            return redirect(url_for('index'))
+
+        flash(error)
+
+    return render_template('auth/login.html')
+
+
+session:
+# ===================================================================================
+
+session is a dict that stores data across requests. 
+When validation succeeds, the user’s id is stored in a new session.
+
+Now that the user’s id is stored in the session, it will be available 
+on subsequent requests. At the beginning of each request, if a user is logged in 
+their information should be loaded and made available to other views.
+
+@bp.before_app_request
+def load_logged_in_user():
+    user_id = session.get('user_id')
+
+    if user_id is None:
+        g.user = None
+    else:
+        g.user = get_db().execute(
+            'SELECT * FROM user WHERE id = ?', (user_id,)
+        ).fetchone()
+
+
+bp.before_app_request() registers a function that runs before the view function, 
+no matter what URL is requested. load_logged_in_user checks if a user id is stored 
+in the session and gets that user’s data from the database, storing it on g.user, 
+which lasts for the length of the request. 
+If there is no user id, or if the id doesn’t exist, g.user will be None.
+
+
+Logout:
+# ===================================================================================
+
+To log out, you need to remove the user id from the session. 
+Then load_logged_in_user won’t load a user on subsequent requests.
+
+@bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+
+Endpoints and url_for():
+# ===================================================================================
+
+For example, hello() view has the name 'hello' and can be linked to with url_for('hello'). 
+If it took an argument, it would be linked to using url_for('hello', who='World').
+
+
+
+Templates:
+# ===================================================================================
+the views are calling render_template()
+Flask uses the Jinja template library to render templates
+g and url_for() automatically available in templates
+
+The input tags are using the required attribute here. 
+This tells the browser not to submit the form until those fields are filled in.
+
+eg.
+{% block content %}
+  <form method="post">
+    <label for="username">Username</label>
+    <input name="username" id="username" required>
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" required>
+    <input type="submit" value="Register">
+  </form>
+{% endblock %}
+
+
+
+
+Static Files:
+# ===================================================================================
+
+Flask automatically adds a static view that takes a path relative to 
+the flaskr/static directory and serves it. 
+
+The base.html template already has a link to the style.css file:
+{{ url_for('static', filename='style.css') }}
+
+
+Besides CSS, other types of static files might be files with JavaScript functions, 
+or a logo image. They are all placed under the flaskr/static directory 
+and referenced with url_for('static', filename='...').
+
+
+
+
+
+# SQLite
+# ===================================================================================
+
+SQLite is convenient because it doesn’t require setting up a separate database server 
+and is built-in to Python. However, if concurrent requests try to write to the database 
+at the same time, they will slow down as each write happens sequentially. 
+Small applications won’t notice this. 
+Once you become big, you may want to switch to a different database.
+
+
+
+# SQLAlchemy Database Query
+# ===================================================================================
+
+https://flask-sqlalchemy.palletsprojects.com/en/2.x/queries/
+
+大部分扩展都需要执行一个“初始化”操作。你需要导入扩展类，实例化并传入 Flask 程序实例：
+
+from flask_sqlalchemy import SQLAlchemy  # 导入扩展类
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(app.root_path, 'data.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的监控
+# 在扩展类实例化前加载配置
+db = SQLAlchemy(app)  # 初始化扩展，传入程序实例 app
+
+
+创建数据库模型
+class User(db.Model):  # 表名将会是 user（自动生成，小写处理）
+    id = db.Column(db.Integer, primary_key=True)  # 主键
+    name = db.Column(db.String(20))  # 名字
+
+class Movie(db.Model):  # 表名将会是 movie
+    id = db.Column(db.Integer, primary_key=True)  # 主键
+    title = db.Column(db.String(60))  # 电影标题
+    year = db.Column(db.String(4))  # 电影年份
+
+
+常用的字段类型如下表所示：
+
+字段类	说明
+db.Integer	整型
+db.String (size)	字符串，size 为最大长度，比如 db.String(20)
+db.Text	长文本
+db.DateTime	时间日期，Python datetime 对象
+db.Float	浮点数
+db.Boolean	布尔值
+
+
+$ flask shell
+>>> from app.models import db, User
+>>> db.create_all()
+打开文件管理器，你会发现项目根目录下出现了新创建的数据库文件 data.db。
+这个文件不需要提交到 Git 仓库，我们在 .gitignore 文件最后添加一行新规则：
+*.db
+
+
+如果你改动了模型类，想重新生成表模式，
+那么需要先使用 db.drop_all() 删除表，然后重新创建：
+>>> db.drop_all()
+>>> db.create_all()
+注意这会一并删除所有数据，如果你想在不破坏数据库内的数据的前提下变更表的结构，
+需要使用数据库迁移工具，比如集成了 Alembic 的 Flask-Migrate 扩展。
+
+提示 上面打开 Python Shell 使用的是 flask shell命令，而不是 python。
+使用这个命令启动的 Python Shell 激活了“程序上下文”，它包含一些特殊变量，
+这对于某些操作是必须的（比如上面的 db.create_all()调用）。
+请记住，后续的 Python Shell 都会使用这个命令打开
+
+
+>>> alice = User(username="alice", password="12345678", email ="alice@example.com")
+>>> bob = User(username="bob", password="12345678", email ="bob@example.com")
+
+>>> db.session.add(alice) # 数据库会话session
+>>> db.session.add(bob)
+>>> db.session.delete(bob)
+>>> db.session.commit()
+
+>>> User.query.all() 
+>>> User.query.filter_by(username='admin').first() # 不加first()返回一个object
+>>> User.query.filter_by(username='admin').first_or_404() # if no result返回404
+>>> u = User.query.all() # u is a list
+>>> u = u[0] 
+>>> u[0].username
+>>> u[0].password
+>>> User.query.get(1)
+
+>>> User.query.delete()
+
+# Selecting a bunch of users by a more complex expression:
+>>> User.query.filter(User.email.endswith('@example.com')).all()
+[<User u'admin'>, <User u'guest'>]
+
+
+过滤方法：
+filter()
+filter_by()
+order_by()
+group_by()
+
+查询方法：
+all()
+first()
+get(id)
+count() # 返回查询结果的数量
+first_or_404()
+get_or_404(id)
+paginate() # 返回一个Pagination对象，可以对记录进行分页处理
+
+
+
+One-to-Many Relationships：
+
+class Person(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    addresses = db.relationship('Address', backref='person', lazy=True)
+
+class Address(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False)
+    person_id = db.Column(db.Integer, db.ForeignKey('person.id'),
+        nullable=False)
+
+db.relationship() function returns a new property that can do multiple things. 
+In this case we told it to point to the Address class and load multiple of those.
+
+If you want a one-to-one relationship you can pass uselist=False to relationship().
+
+backref is a simple way to also declare a new property on the Address class. 
+You can then also use my_address.person to get to the person at that address.
+
+lazy defines when SQLAlchemy will load the data from the database:
+select
+joined
+subquery
+dynamic
+
+
+How do you define the lazy status for backrefs? By using the backref() function:
+
+class Person(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    addresses = db.relationship('Address', lazy='select',
+        backref=db.backref('person', lazy='joined'))
+
+
+
+
+Many-to-Many Relationships：
+
+If you want to use many-to-many relationships you will need to define a helper table 
+For this helper table it is recommended to not use a model but an actual table:
+
+tags = db.Table('tags',
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True),
+    db.Column('page_id', db.Integer, db.ForeignKey('page.id'), primary_key=True)
+)
+
+class Page(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    tags = db.relationship('Tag', secondary=tags, lazy='subquery',
+        backref=db.backref('pages', lazy=True))
+
+class Tag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+
+
+
+SQLite3:
+# ===================================================================================
+
+SQLite is one database application that supports SQL, and there are many companies 
+with server applications that support SQL, 
+includes Oracle Database, MySQL, PostgreSQL, MariaDB, and Microsoft Access.
+
+Within cs50.SQL is an execute method whose first argument should be a str of SQL. 
+If that str contains named parameters to which values should be bound, 
+those values can be provided as additional named parameters to execute. 
+See the implementation of login for one such example. 
+The return value of execute is as follows:
+
+If str is a SELECT, then execute returns a list of zero or more dict objects, inside of 
+which are keys and values representing a table’s fields and cells, respectively.
+
+If str is an INSERT, and the table into which data was inserted contains 
+an autoincrementing PRIMARY KEY, then execute returns the value of 
+the newly inserted row’s primary key.
+
+If str is a DELETE or an UPDATE, then execute returns the 
+number of rows deleted or updated by str.
+
+
+
+# connect to database
+db = cs50.SQL("sqlite:///shows3.db")
+
+# 启动database
+>>> sqlite3 favorites.db
+
+# And get a count of the number of times each title appears:
+>>> SELECT title, COUNT(title) FROM favorites GROUP BY title; 
+>>> SELECT title, COUNT(title) AS n FROM favorites GROUP BY title 
+        ORDER BY n DESC LIMIT 10;
+
+
+>>> CREATE TABLE table (column type, ...);
+
+>>> .schema
+CREATE TABLE favorites(
+  "Timestamp" TEXT,
+  "title" TEXT,
+  "genres" TEXT
+);
+
+
+>>> .schema
+CREATE TABLE IF NOT EXISTS 'users' ('id' INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+'username' TEXT NOT NULL, 'hash' TEXT NOT NULL, 'cash' NUMERIC NOT NULL DEFAULT 10000.00 );
+>>> CREATE TABLE sqlite_sequence(name,seq);
+>>> CREATE UNIQUE INDEX 'username' ON "users" ("username");
+
+
+data types:
+id Integer
+username text
+hashed password text
+cash NUMERIC
+
+
+>>> UPDATE table SET column=value WHERE condition;
+>>> UPDATE favorites SET title = "The Office" WHERE title LIKE "%office"
+
+>>> DELETE FROM table WHERE condition;
+>>> DELETE FROM favorites WHERE title = "Friends";
+
+>>>DROP: delete an entire table altogether 
+
+
+>>> SELECT * FROM shows JOIN genres ON show.id = genres.show_id;
+
+
+In SQL, the commands to perform each of these operations are:
+INSERT
+SELECT
+UPDATE
+DELETE
+
+>>> SELECT * FROM shows WHERE id IN (...);
+
+>>> SELECT title FROM
+people JOIN stars ON people.id = stars.person_id JOIN
+shows ON stars.show_id = shows.id
+WHERE name = "Ellen DeGeneres"
+
+
+use db.execute (from CS50’s library) to query database
+
+>>> db.execute("CREATE TABLE shows (tconst TEXT, primaryTitle TEXT, 
+startYear NUMERIC, genres TEXT)")
+
+>>> db.execute("CREATE TABLE shows (id INT, title TEXT, year NUMERIC, PRIMARY KEY(id))")
+
+>>> db.execute("CREATE TABLE genres (show_id INT, genre TEXT, 
+FOREIGN KEY(show_id) REFERENCES shows(id))")
+
+
+
+It turns out that we can specify columns of our tables to be special types, such as:
+
+PRIMARY KEY: used as the primary identifier for a row
+FOREIGN KEY: which points to a row in another table
+UNIQUE: which means it has to be unique in this table
+INDEX: which asks our database to create a index to more quickly query based on this 
+column. An index is a data structure like a tree, which helps us search for values.
+
+CREATE INDEX person_index ON stars (person_id);
+
+
+
+
+phpLiteAdmin
+# ===================================================================================
+phpLiteAdmin is for SQLite what phpMyAdmin is for MySQL. 
+
+phpLiteAdmin is a web-based SQLite database admin tool written in PHP 
+with support for SQLite3 and SQLite2. 
+
+
+
+
+API
+# ===================================================================================
+query IEX website for real-time stock prices
+
+IEX lets you download stock quotes via their API (application programming interface)
+using URLs like https://cloud-sse.iexapis.com/stable/stock/nflx/quote?token=API_KEY
+
+we need to register for an API key in order to query IEX’s data
+
+In a terminal window within CS50 IDE, execute:
+$ export API_KEY=value # replace value with API tokens
+
+
+
+
+
+MySQL
+# ===================================================================================
+
+没有多对多的关系
+如果有，则需要在中间新建一个table，分别是一对多
+
+
+show databases
+use test
+show tables
+show tables from MySQL
+select database() # 查看目前在哪个库
+create stuinfo(
+    id int,
+    name varchar(20)
+);
+
+show tables
+desc stuinfo # 查看表结构describe
+
+insert into stuinfo (id,name) values (1,"john");
+
+update stuinfo set name="mike" where id = 1;
+
+delete from stuinfo where id = 1;
+
+select version(); # 查看版本
+
+
+DQL: data query language
+DML: data manipulation lanuage
+DDL: data define lanuage
+TCL: transaction control language
+
+
+alias:
+使用as 或者 space都可
+
+去重：
+select distinct from
+
+concat:
+select concat("firstname","lastname") as name;
+# null 和 任何 concat都为null
+
+ifnull()函数：
+select ifnull("salary", 0) as salary
+
+
+模糊查询：
+Like
+in
+between and
+is null # 不可以用= null
+is not null
+
+
+逻辑运算符：
+not
+and
+or
+
+
+where id <> 99 # id != 99 都可
+
+
+模糊查询like：
+
+like "%a%" # 包含a
+like "%a%e%" # 包含a和e，并且a在e之前
+
+% 任意多字符
+_一个字符
+like "__a_e%"
+
+
+转义\
+like "_\_a_e%"
+like "_$_a_e%" escape "$" # 设置转义符号
+
+
+between and 增加简洁度
+
+
+<=> 安全等于 可以判断null，用的不多
+
+
+order by desc asc
+一般放在语句最后
+只有limit在order by后面
+order by后面也可接函数，比如length等
+
+
+select length(lastname) as 姓的长度 salary,from employees order by length(lastname) desc;
+
+
+
+
+
+
+MySQL 函数
+# ===================================================================================
+
+单行函数：concat，length，ifnull
+分组函数/统计函数
+
+
+
+
+字符函数
+# ===================================================================================
+
+
+select concat("lastname","_","firstname") from employees;
+
+
+length函数
+字节长度
+
+upper,lower函数
+select upper/lower(lastname) from ...
+
+
+substr, substring函数
+select substr("hello",2) output;
+select substr("hello",2,3) output;
+
+
+instr函数
+select instr("hello","ell") as output; # 结果2
+
+
+trim函数
+去掉前后空格
+select trim("    hello ") as output; # 结果hello
+
+select trim("a" from "aaaahelloaaaa") as output;
+
+
+lpad函数(左填充)
+select lpad("hello",10,"*") as output; # 结果*****hello
+
+
+rpad函数(右填充)
+select rpad("hello",10,"*") as output; # 结果hello*****
+
+
+replace函数
+select replace("helloaaa","hello","bbbbb") as output; # 结果bbbbbaaa
+
+
+MySQL 数学函数
+# ===================================================================================
+
+round函数
+round(-1.65) # -2
+round(-1.45) # -1
+
+select round(1.567,2) # 1.57
+
+
+ceil函数
+向上取整
+select ceil(1.00) # 1
+
+floor函数
+向下取整
+select ceil(9.99) # 9
+
+
+truncate函数
+截断
+select truncate(1.69999,1) # 1.6
+
+
+mod函数
+取余
+select mod(-10,-3) # -1
+select mod(-10,3) # -1
+结果正负看-10的符号
+
+
+rand函数
+获取0-1之间随机数
+
+
+
+MySQL 日期函数
+# ===================================================================================
+
+now函数
+select now（）
+
+
+curdate函数
+select curdate()
+
+curtime函数
+select curtime()
+
+year函数
+select year(now())
+select year('1998-1-1')
+
+
+month函数
+select month(now())
+
+
+month函数和monthtime函数
+select month(now()) # 9
+select monthname(now()) # september
+
+
+str_to_date函数
+select str_to_date('2000-1-1','%Y-%c-%d') as output
+
+eg.
+查找employee入职日期
+select str_to_date('4-3 1991','%c-%d %Y');
+
+
+date_format函数
+select date_format(now(),'%y年%m月%d日')
+
+datediff函数
+select datediff(now(),'1995-1-1')
+
+
+
+MySQL 其他函数
+# ===================================================================================
+
+select version();
+select database();
+select user();
+select password("hello") # 对hello加密
+select md5("hello") # 对hello加密
+
+
+
+
+MySQL 流程控制函数
+# ===================================================================================
+
+if函数
+select if(10>5,'bigger','smaller')
+
+
+case函数
+select salary 原始工资,department_id,
+case department_id
+when 30 then salary*1.1
+when 40 then salary*1.2
+when 50 then salary*1.3
+else salary
+end as 新工资
+from employees;
+
+
+
+按首字母排序和按单词排序不一样
+按单词排序，第一个字母一样，看第二个
+但首字母排序只看第一个
+
+
+
+分组函数
+# ===================================================================================
+sum
+avg
+max
+min
+count # 非空值数量
+
+max,min,count可以处理任何类型数据
+
+以上分组函数都忽略null值
+
+都可以搭配distinct使用，实现去重
+
+sum和distinct搭配
+select sum(distinct,salary) from employees;
+
+count函数用的很多
+count(*)用的很多
+
+count数行数时，只要一行里有一个数值不是null，count就加一
+
+select count(1) from employees;
+
+效率：
+myisam存储引擎下，count(*)效率高
+innodb存储引擎下，count(*)效率和count(1)差不多
+
+
+
+
+分组查询
+# ===================================================================================
+
+分组查询中筛选条件分为两类:
+分组前筛选 原始表 放在group by前 用where
+分组后筛选 分组后的结果集 放在group by后 用having
+
+分组函数做条件肯定放在having语句中
+
+
+分组前的筛选：
+出现每个字样时，用group by
+
+group by
+
+select max(salary), job_id from employees group by job_id;
+
+select count(*), location_id from departments group by location_id;
+
+
+分组后的筛选：
+select count(*), department_id from employees group by department_id
+having count(*) > 2;
+此时不能用where了，因为不在employees表里
+
+
+规律：可以先写select from group by 然后再写where 或者 having count等
+
+
+group by后面如果有多个，没有顺序要求
+
+
+找“各个”，“每个”这样的字眼，然后select他们
+
+
+
+
+连接查询/多表查询
+# ===================================================================================
+
+笛卡尔乘积现象原因：
+没有有效的连接条件
+
+sql92标准
+sql99标准（推荐）
+
+
+内连接：等值连接，非等值连接，自连接
+外连接：左外，右外，全外
+交叉连接
+
+
+
+
+等值连接（sql92标准）
+# ===================================================================================
+
+给表起过别名alias之后，原始名就不能用了
+
+select a, b from table1, table2 where ... = ...
+
+每个城市group by city
+
+
+三表连接：
+select lastname,departmentname, city from employees e, departments d, locations l
+where e.department_id = d.department_id
+and d.location_id = l.location_id;
+
+多表等值连接为多表的交集部分
+
+
+
+
+非等值连接（sql92标准）
+# ===================================================================================
+
+等号换成大于小于非等于号的连接
+或者用between and
+
+
+自连接（sql92标准）
+# ===================================================================================
+
+同一张表里查询
+
+查询员工名和上级的名称
+
+eg. sql92标准
+
+select e.employee_id,e.last_name, m.manager_id, m.last_name
+from employees e, employees m;
+where e.manager_id = m.manager_id;
+
+
+group by和having里最好不用用别名，mysql支持，其他很多不支持
+
+
+两个表都有的item select时会有歧义，要用table.item来select
+
+
+别名中有特殊符号如#，需要用单或双引号引用起来
+
+
+
+
+
+等值连接（sql99标准）
+# ===================================================================================
+
+table 1 inner join table 2 on = 
+
+inner 可省略，直接写join
+
+inner join连接和sql92语法中的等值连接效果一样，都是查询交集
+
+
+
+非等值连接（sql99标准）
+# ===================================================================================
+
+on salary between lowerest and highest
+
+
+
+自连接（sql99标准）
+# ===================================================================================
+
+select e.lastname, m.lastname from employees e join employees m
+on e.manager_id = m.employee_id
+where e.lastname like '%k%'
+
+
+
+外连接（sql99标准）
+# ===================================================================================
+
+应用场景：用于查询一个表中有，另一个表中没有
+
+主表，从表
+
+外连接显示主表中所有记录，如果从表中有和它匹配的，则显示匹配的值。
+如果主表中有，从表中没有和它匹配的，则显示null
+
+外连接显示结果 = 内连接结果 + 主表有从表没有的记录
+
+left join左边是主表
+right join右边是主表
+
+左外和右外两个表顺序交换，能达到一样的效果
+
+
+要查询的信息在哪个表一般就是主表
+
+select d.*, e.employee_id from departments d
+left outer join employees e
+on d.department_id = e.department_id
+where e.employee_id is null;
+
+
+全外连接（mysql不支持）
+
+full outer join
+
+不分主从表
+
+外连接显示结果 = 内连接结果 + 主表有从表没有的记录 + 从表中有主表中没有的记录
+
+
+
+交叉连接（sql99标准）
+# ===================================================================================
+
+cross join
+不用on
+
+两个表进行笛卡尔乘积
+
+select b.*, bo.*
+from beauty b
+cross join boys bo;
+
+cross join就是92语法中的逗号
+
+
+
+去掉交集（sql99标准）
+# ===================================================================================
+
+左外去交集
+select from left join on where b.key is null;
+
+右外去交集
+select from right join on where a.key is null;
+
+全外去交集
+select from full join on where a.key is null or b.key is null;
+
+
+
+子查询subquery（sql99标准）
+# ===================================================================================
+
+标量子查询（单行子查询）
+列子查询（多列子查询）
+行子查询（所行多列）
+
+子查询放在小括号内
+子查询一般放在条件右侧
+
+列子查询一般搭配in any/some all使用
+使用any可以用其他的来代替，如min，max等
+
+having和where后都可接子查询
+
+不等于<>
+
+distinct去重
+
+in可以换成=any
+not in可以换成<>all
+
+select后面也可有子查询，但不常用，比较别扭
+
+from后面也可有子查询，表必须起别名
+
+
+exists用的也比较少
+exists后面可有子查询
+
+exists（完整查询语句）
+结果1或0
+
+where exists/where not exist
+能用exists都能用in
+
+
+
+
+子查询subquery练习题（sql99标准）
+# ===================================================================================
+youtube视频98
+
+
+
+分页查询（sql99标准）
+# ===================================================================================
+
+一页显示不全，需要分页提交sql请求
+
+
+offset：要显示条目的起始索引，从0开始
+size：要显示的条目个数
+
+
+limit 0，5 # 起始0，共5
+limit 5 # 默认index 0
+
+limit 11，15 # 第11到25条目
+
+limit (page - 1)*size, size;
+
+
+
+联合查询（sql99标准）
+# ===================================================================================
+
+union
+
+和or相似
+
+union左右分别有一个select语句
+
+union应用场景：
+想查询的信息一致，且来自多个表，并且想查询的信息之间没关系时
+
+如：查询中国用户中男性信息以及外国用户中男性信息
+
+
+union查询特点：
+多条查询语句的查询列数一样
+要求多条查询语句要查询的的每一列的类型和顺序一致
+union默认去重
+union all可以包含重复项
+
+
+
+
+insert插入
+# ===================================================================================
+
+方法一：
+insert into 表名（列名。。。） values （值。。。）
+
+照片类型blob
+
+insert into beauty(id, name, photo, boy_friend_id) values (13, "alice", null, 2);
+
+默认是nullable
+
+
+insert into beauty(id, name, boy_friend_id) values (13, "alice", 2);
+列也不写，null也不写
+
+
+列的顺序可颠倒，只要值和列名一一对应
+
+列数和值数的个数必须一致
+
+可以不写列名，但值名必须全写
+insert into beauty values (13, "alice", null, 2)
+
+
+
+方法二：
+insert into beauty set id=3, name = "bob", photo = null, boy_friend_id = 4;
+
+insert into 也可以和set一起用
+但每次只能插入一行
+
+
+方法一可一次插入多个记录
+insert into beauty values 
+(13, "alice", 2),
+(14, "bob", 2),
+(15, "charlie", 2);
+
+
+方法一支持子查询
+
+
+
+
+update修改
+# ===================================================================================
+
+修改单表记录：
+
+update 表名 set 列=新值 where 筛选条件
+
+update beauty set phone = "1234567" where name like "%唐"
+
+
+修改多表记录（涉及表的连接）：
+update boys bo inner join beauty b on bo."id" = b."boy_friend_id"
+set b."phone" = "123"
+where bo."boyname" = "张无忌";
+
+
+
+
+
+delete删除
+# ===================================================================================
+
+
+单表删除
+
+多表删除
+用join
+
+
+
+truncate删除
+# ===================================================================================
+
+truncate table boys;
+truncate后面不能加条件
+
+
+autoincrement两者不同
+
+用delete删除后，再插入数据，自增长列的值从断点开始
+用truncate删除后，再插入数据，自增长列的值从1开始
+
+
+truncate删除没有返回值，delete有
+
+truncate删除不能回滚，delete可以
+
+ 
+
+use table
+desc table
+show tables
+
+
+DDL
+# ===================================================================================
+
+
+库：
+
+创建库
+create database name;
+create database if not exists name;
+
+修改库
+更改库的字符集
+alter database books character set gbk;
+
+删除库
+drop database books;
+drop database if exists books;
+
+
+
+
+表：
+
+创建表
+create table authors(
+    id int,
+    author varchar(20),
+    nation varchar(20)
+);
+
+
+
+修改表
+修改列名
+alter table book change column publishdate publishdate datetime;
+
+修改列的类型或者约束
+alter table book modify column pudate timestamp;
+
+添加新的列
+alter table author add column annual double;
+
+删除列
+alter table authors drop column annual;
+
+修改表名
+alter table authors rename to book_author;
+
+
+表总结：alter table 表名 add|drop|modify|change column 列名 列类型 约束；
+
+
+
+删除表
+drop table 表名
+drop table if exists authors;
+
+shows tables；
+
+
+通常写法：先删除旧的
+drop database if exists 就库名
+create database 新库名
+
+drop table if exists 旧表名
+create table 表名()
+
+
+
+
+
+表的复制
+# ===================================================================================
+
+仅仅复制表的结构
+create table copied_table like authors;
+
+复制结构加数据
+create table copied_table
+select * from authors;
+
+只复制部分数据
+加where
+
+仅仅复制部分结构，不复制数据
+create table copied_table
+select id, name from authors
+where 1 = 2; / where 0;
+
+
+跨库复制表结构，可以用 database名.table名
+
+
+
+
+数据类型介绍
+# ===================================================================================
+
+整型
+
+小数：定点数，浮点数
+
+字符型：较短文本char，varchar， 较长文本：text，blob（较长的二进制数据）
+
+日期型
+
+
+tinyint 有符号：-128 - 127 无符号: 0 - 255
+
+create table tablename (
+    t1 int,
+    t2 int unsigned
+)
+
+
+create table tablename (
+    t1 int(7) zerofill,
+    t2 int(7) zerofill
+)
+
+长度代表显示的最大长度
+如插入123， 则前四位用0补齐，0000123
+
+
+
+
+
+常见约束
+# ===================================================================================
+
+六大约束
+not null
+default
+primary key: 有唯一性，非空
+unique:可以为空
+check： 检查约束，mysql不支持
+foreign key外键，在从表添加外键约束，引用主表值
+
+设计表时或者修改表时添加约束
+
+
+列级约束：六大约束都支持，但外键约束没效果
+表级约束：除了非空，默认，其他都支持
+
+
+
+
+
+
+主键和唯一差别
+# ===================================================================================
+
+一个表中主键可以没有，可以一个，不可有多个
+
+可以组合主键，但不推荐
+
+
+
+Power BI
+# ===================================================================================
+
+维度表 在上面
+事实表 在下面
+这样关系更清晰
+
+
+管理关系
+
+编辑查询
+
+related 和 excel中 vlookup相似
+distintcount # 非重复计数
+
+新建度量值 # 有计算器符号
+
+能用度量值就不要新建列
+
+sumx函数
+
+power bi里操作不会对源数据进行修改
+
+对源数据修改后，power bi里刷新
+
+数据源设置，更改源，点击应用更改
+
+格式 - 编辑交互 - 筛选器/突出显示/无
+
+发布power bi项目到云端，然后可以发布到web或pdf
+web会有网址，所有用户都可查看
+
+
+
+Power BI 三小时进阶
+# ===================================================================================
+
+从文件夹获取数据，链接，粘贴数据源的位置，导入文件夹，合并并编辑
+
+
+替换值
+
+关闭并应用
+
+点击编辑查询，打开查询编辑器
+
+
+
+从网页获取数据：
+F12，选择单独的表的网址，头尾其他信息都去掉了，复制粘贴网址，在新一页打开
+
+回到poewr bi，点击获取数据，从web，粘贴link
+
+
+
+Power BI 八小时掌握篇
+# ===================================================================================
+
+点击管理参数，新建参数，填名称，说明，类型，建议值，当前值（如201808）
+
+"$Text.From(年月)$" # text.from转换成文本格式
+
+右键，选择创建函数
+
+uncheck启用加载，不会进入到模型中
+
+追加查询
+
+选择输入数据，创建一个新表
+
+点击新建源，点击空查询，点击高级编辑器
+
+大括号 - 行
+中括号 - 列
+
+OEE：overall equipment effectiveness
+
+web.contents 函数
+
+
+
+
+
+
+
+flask wtf: 创建表单
+# ===================================================================================
+
+{{ wtf.quick_form(form) }} # website
+
+<div class="col-md-6"> # column width
+
+
+website: https://flask-wtf.readthedocs.io/en/stable/quickstart.html#creating-forms
+from flask_wtf import FlaskForm
+from wtforms import StringField
+from wtforms.validators import DataRequired
+
+class MyForm(FlaskForm):
+    name = StringField('name', validators=[DataRequired()])
+
+
+
+
+website: https://github.com/alphafan/flask-user-auth-example/blob/master/config.py
+import os
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+class Config(object):
+
+    # APP MODE
+    DEBUG = True
+
+    # Top secret of website
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
+
+    # Database configuration
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(basedir, 'app.db')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
+# website: https://flask.palletsprojects.com/en/1.1.x/patterns/wtforms/#
+from wtforms import Form, BooleanField, StringField, PasswordField, validators
+
+class RegistrationForm(Form):
+    username = StringField('Username', [validators.Length(min=4, max=25)])
+    email = StringField('Email Address', [validators.Length(min=6, max=35)])
+    password = PasswordField('New Password', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Passwords must match')
+    ])
+    confirm = PasswordField('Repeat Password')
+    accept_tos = BooleanField('I accept the TOS', [validators.DataRequired()])
+
+
+
+@app.route('/submit', methods=('GET', 'POST'))
+def submit():
+    form = MyForm()
+    if form.validate_on_submit():
+        return redirect('/success')
+    return render_template('submit.html', form=form)
+
+
+
+a CSRF token hidden field is created automatically.
+
+    
+In order to generate the csrf token, you must have a secret key, 
+this is usually the same as your Flask app secret key. 
+If you want to use another secret key, config it:
+
+WTF_CSRF_SECRET_KEY = 'a random string'
+
+
+comment = TextAreaField("Comment", validators=[DataRequired()])
+
+
+password = bcrypt.generate_password_hash(form.password.data)
+
+
+# password hash
+python 2:
+pw_hash = bcrypt.generate_password_hash('hunter2')
+bcrypt.check_password_hash(pw_hash, 'hunter2') # returns True
+
+python 3:
+pw_hash = bcrypt.generate_password_hash(‘hunter2’).decode(‘utf-8’)
+
+
+
+
+
+
+
+
+
+class flask_login.UserMixin[source]
+This provides default implementations for 
+the methods that Flask-Login expects user objects to have.
+
+
+
+# WTForms支持的HTML标准字段，注意添加app.config['SECRET_KEY'] = 'hard to guess string'
+# ===================================================================================
+# StringField 文本字段
+# TextAreaField 多行文本字段
+# PasswordField 密码文本字段
+# HiddenField 隐藏文本字段
+# DateField 值为datatime.data格式的文本字段
+# DateTimeField 值为datatime.datatime格式的文本字段
+# DecimalField 值为decimal.Decimal格式的文本字段
+# IntegerField 值为整数的文本字段
+# FloatField 值为浮点数的文本字段
+# BooleanField 值为True或False的复选框
+# RadioField 一组单选框
+# SelectField 值唯一的下拉列表
+# SelectMultipleField 可选多个值得下拉列表
+# FileField 文件上传字段
+# SubmitField 表单提交按钮
+# FormField 把表单作为字段嵌入另一个表单
+# FieldList 一组指定类型的字段
+
+
+
+
+# WTForms验证函数
+# =========================================================================
+# Email 验证电子邮件地址
+# EqualTo 比较两个字段的值;常用于要求输入两次密码进行确认的情况
+# IPAddress 验证 IPv4 网络地址
+# Length 验证输入字符串的长度
+# NumberRange 验证输入的值在数字范围内
+# Optional 无输入值时跳过其他验证函数
+# Required / DataRequired 确保字段中有数据
+# Regexp 使用正则表达式验证输入值
+# URL 验证 URL
+# AnyOf 确保输入值在可选值列表中
+# NoneOf 确保输入值不在可选值列表中
+
+
+
+
+# Your User Class
+# =========================================================================
+
+The class that you use to represent users needs to implement these properties 
+and methods:
+
+is_authenticated
+This property should return True if the user is authenticated, 
+i.e. they have provided valid credentials. (Only authenticated users will 
+fulfill the criteria of login_required.)
+
+is_active
+This property should return True if this is an active user - in addition to 
+being authenticated, they also have activated their account, not been suspended, 
+or any condition your application has for rejecting an account. 
+Inactive accounts may not log in (without being forced of course).
+
+is_anonymous
+This property should return True if this is an anonymous user. 
+(Actual users should return False instead.)
+
+get_id()
+This method must return a unicode that uniquely identifies this user, 
+and can be used to load the user from the user_loader callback. 
+Note that this must be a unicode - if the ID is natively an int or some other type, 
+you will need to convert it to unicode.
+
+
+To make implementing a user class easier, you can inherit from UserMixin, 
+which provides default implementations for all of these properties and methods. 
+(It’s not required, though.)
+
+
+
+# =========================================================================
+
+flask_login.current_user
+A proxy for the current user.
+
+login_view
+The name of the view to redirect to when the user needs to log in.
+
+login_message
+The message to flash when a user is redirected to the login page.
+
+next
+When the log in view is redirected to, it will have a next variable in the query string, 
+which is the page that the user was trying to access.
+
+
+
+
+User Object Helpers
+# =========================================================================
+
+class flask_login.UserMixin
+This provides default implementations for the methods that 
+Flask-Login expects user objects to have.
+
+class flask_login.AnonymousUserMixin
+This is the default object for representing an anonymous user.
+
+
+
+
+# flask_login.login_user(user, remember=False, duration=None, force=False, fresh=True)
+# =========================================================================
+
+Logs a user in. You should pass the actual user object to this. 
+If the user’s is_active property is False, they will not be logged in unless force is True.
+
+This will return True if the log in attempt succeeds, and False if it fails 
+(i.e. because the user is inactive).
+
+Parameters:	
+user (object) – The user object to log in.
+
+remember (bool) – Whether to remember the user after their session expires. 
+Defaults to False.
+
+duration (datetime.timedelta) – The amount of time before the remember cookie expires. 
+If None the value set in the settings is used. Defaults to None.
+
+force (bool) – If the user is inactive, setting this to True will log them in regardless. 
+Defaults to False.
+
+fresh (bool) – setting this to False will log in the user 
+with a session marked as not “fresh”. Defaults to True.
+
+
+
+# flask_login.logout_user()
+# =========================================================================
+
+Logs a user out. (You do not need to pass the actual user.) 
+This will also clean up the remember me cookie if it exists.
+
+
+
+
+# getbootstrap thumbnail
+# =========================================================================
+
+<div class="row">
+  <div class="col-sm-6 col-md-4">
+    <div class="thumbnail">
+      <img src="..." alt="...">
+      <div class="caption">
+        <h3>Thumbnail label</h3>
+        <p>...</p>
+        <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+vs code
+# =========================================================================
+
+在vs code里，写！再按tab键，自动生成html模板
+按p，再按tab键，自动生成<p>标签
+live server保存即在网页上更新
+alt + shift + uparrow 复制
+.box1 直接生成<div class="box1">
+.outer>.inner 直接生成<div class="outer"><div class="inner">
+.box1+.box2 直接生成兄弟两个<div>
+格式化文档，自动排版，shift + alt + f
+
+HTML
+# =========================================================================
+
+lang = "zh" 指中文
+<p>lorem</p> # 自动生成random文字
+
+
+特殊符号实体，entity
+&nbsp;
+&get;
+&lt;
+
+
+<head>
+<meta name = "keywords" content="购物，网上，优惠"> # 网页的关键字
+<meta name = "description" content="这是一个很好的网站"> # 网页的描述
+<meta http-equiv = "refresh" content="3; url = www.google.com"> # 网页3秒后跳转到google
+</head>
+
+charset字符集： 编码和解码所采用的规则
+ASCII, GB2312, UTF-8（万国码）等
+<meta charset = "utf-8> 网页是用utf-8编码的
+
+
+inline行内，不独占一行
+block块，独占一行，用于对网页进行布局
+
+鲁迅说：
+<blockquote> # 引用
+    我从来没说过这句话！
+</blockquote>
+
+
+子曰<q>学而时习之</q> # 自动加引号
+
+
+用的频率不大：
+<header> # 网页头部
+<main> # 网页主体，只能有一个
+<footer> # 网页底部
+<aside> # 和主体相关的其他内容，如边栏
+<article> # 表示独立文章
+
+<nav> # 导航
+<section> # 独立区块
+
+
+
+用的最多：
+<div> # 表示一个区块，可以代替上面所有
+<span> # 行内，一般用于在网页中选中文字
+
+
+
+列表：
+有序ol
+无序ul
+定义列表dl
+
+用的少：
+<dl>
+    <dt>
+    <dd>
+</dl>
+
+
+<a href = "index.html">内部跳转</a>
+<a href = "www.google.com">外部跳转</a>
+
+
+相对路径和绝对路径：
+
+相对路径：./或者../开头，./可以省略
+
+./表示当前文件所在目录
+
+../表示当前文件所在目录的上一层目录
+
+
+
+去网页中任意位置：
+
+超链接去到底部：
+<a href="#bottom">去到底部</a>
+
+超链接回到顶部：
+<a id = "bottom" href="#">回到顶部</a>
+
+id：不能有重复，每个tag都可以有个id属性，字母开头
+
+
+开发过程中，超链接占位符，没想好跳转到哪的时候用，点击超链接，什么也不做
+<a href="javascript:;">这是一个超链接</a>
+
+
+引入image地址
+网上右键，复制图片地址，copy到image tag里 src中
+
+img不是inline 也不是 block元素，是替换元素
+
+
+jpg, gif, png, webp
+
+将图片使用base 64编码，可以将图片转换成字符，通过字符的形式引入图片
+线上有工具可以转
+
+
+内联框架iframe： 使用不多
+当前页面中引入一个其他网站页面
+<iframe src = "www.qq.com" width = "800" height = "600" frameborder="0"></iframe>
+frameborder指内嵌的网页有没有边框，0没有，1有
+
+
+
+padding和margin的区别：
+padding: space between the text and the border.
+margin: margin (space) outside the border.
+
+
+Link to External CSS:
+<link rel="stylesheet" href="https://www.w3schools.com/html/styles.css">
+
+Link to current website:
+<link rel="stylesheet" href="/html/styles.css">
+
+Link to style sheet located in the same folder as current page:
+<link rel="stylesheet" href="styles.css">
+
+
+Absolute URLs:
+a full web address
+
+Relative URLs:
+A local link (a link to a page within the same website) 
+specified with a relative URL (without the "https://www" part)
+
+
+HTML Links - Different Colors:
+a: link
+a: visited
+a: hover
+a: active
+a是连接的样式.a:visited是连接已经访问过的样式.
+
+
+bookmark:
+You can also add a link to a bookmark on another page:
+<a href="html_demo.html#C4">Jump to Chapter 4</a>
+# 对应 id
+. 对应 class
+
+multiple class: city and main
+<h2 class="city main">London</h2>
+
+
+
+
+<dl> tag defines the description list, 
+<dt> tag defines the term (name), 
+<dd> tag describes each term
+
+eg.
+<dl>
+  <dt>Coffee</dt>
+  <dd>- black hot drink</dd>
+  <dt>Milk</dt>
+  <dd>- white cold drink</dd>
+</dl>
+
+Coffee
+- black hot drink
+Milk
+- white cold drink
+
+
+
+Unordered HTML List - Choose List Item Marker:
+
+disc	Sets the list item marker to a bullet (default)
+circle	Sets the list item marker to a circle
+square	Sets the list item marker to a square
+none	The list items will not be marked
+
+
+
+The type attribute of the <ol> tag, defines the type of the list item marker:
+
+type="1"	The list items will be numbered with numbers (default)
+type="A"	The list items will be numbered with uppercase letters
+type="a"	The list items will be numbered with lowercase letters
+type="I"	The list items will be numbered with uppercase roman numbers
+type="i"	The list items will be numbered with lowercase roman numbers
+
+
+If you want to start counting from a specified number,use the start attribute:
+<ol start="50">
+  <li>Coffee</li>
+  <li>Tea</li>
+  <li>Milk</li>
+</ol>
+
+
+
+<span>:
+<span> 用于对文档中的行内元素进行组合。
+<span> 标签没有固定的格式表现。当对它应用样式时，它才会产生视觉上的变化。
+如果不对 <span> 应用样式，那么 <span> 元素中的文本与其他文本不会任何视觉上的差异。
+<span> 标签提供了一种将文本的一部分或者文档的一部分独立出来的方式
+
+
+<div>:
+<div> 可定义文档中的分区或节（division/section）。
+<div> 标签可以把文档分割为独立的、不同的部分。
+它可以用作严格的组织工具，并且不使用任何格式与其关联
+
+
+
+HTML <a> target Attribute：
+_blank	Opens the linked document in a new window or tab
+_self	Opens the linked document in the same frame as it was clicked (this is default)
+_parent	Opens the linked document in the parent frame
+_top	Opens the linked document in the full body of the window
+
+
+
+
+CSS 
+# =========================================================================
+<p> 选择器 selector
+声名块{}
+
+
+id不可重复，class可重复
+#id{}
+.class{}
+* 选中所有元素
+
+一个元素可以有多个class，中间用space隔开
+<p class="blue abc">
+
+div.blue{} # 复合选择器，同时满足既是div又是blue class
+.a.b.c # 同时满足class a b class
+h1, span{}
+
+
+
+CSS 选择器的权重（优先级）：
+# =========================================================================
+
+！important
+内联样式:sytle
+id选择器
+类和伪类选择器
+元素选择器
+通配选择器 # *{}
+继承的样式 # 没有优先级
+
+<div id="box1" class="red" style=background-color:skyblue;">我是一个div</div>
+
+div#box1 > #box1 # 相加进行比较
+
+div，p，span{} # 分组选择器单独计算
+
+选择器的累加不会超过其最大数量级
+
+通常来说选择器写的越具体，优先级越高
+
+如果优先级相同，优先使用下面的
+
+可以在某一个样式后面加！important，优先级超过内联样式
+一定慎用，能不用别用
+
+
+
+
+CSS 祖先和子孙关系
+# =========================================================================
+
+div > span{} # 父元素div里的子元素span
+div > p > span {}
+div span{} # 父元素里所有后代元素span
+p + span{} # 选择p紧挨着后面的span， p和span同级
+p ~ span{} # 选择p后面所有的span， p和span同级
+
+
+<p title="abc">
+p[title]{} # p元素，里面有title属性的
+p[title=abc] # p元素，title属性是abc的
+p[title^=abc] # p元素，title属性是以abc开头的
+p[title$=abc] # p元素，title属性是以abc结尾的
+p[title*=abc] # p元素，title属性中包含abc的
+
+
+
+
+CSS 伪类和伪元素
+# =========================================================================
+
+pseudo-class伪类：
+pseudo-elements伪元素：：
+
+
+ul > li tab直接生成
+ul + ul tab直接生成
+ul > li * 5 tab直接生成
+
+
+ul > li:first-child{} # 第一个子元素
+ul > li:last-child{} # 最后一个子元素
+ul > li:nth-child(n){} # 第n个子元素
+写n代表所有，2n代表偶数，2n+1代表奇数位或者even/odd
+
+所有元素里：
+first-child
+last-child
+nth-child
+
+
+同类型里：
+first-of-type
+last-of-type
+nth-of-type
+
+
+not否定伪类
+ul > li:not(:nth-child(3)){color: yellow;}
+ul > li:not(:nth-of-type(3)){color: yellow;}
+
+
+<a>的伪类
+a:link{color:red;} # 没访问过的链接红色
+a:visited{color:orange} # 访问过的链接变orange
+a:visited只能改颜色（隐私原因）
+a:link可以改字体大小
+a:hover{color:blue;font-size:50px} # 鼠标hover over时变蓝
+a:active{color:yellowgreen} # 点击时别松手，link变黄绿
+
+
+link和active是<a>独有的，hover和active所有元素都可以
+
+
+伪元素：
+p::first-letter{font-size:50;}
+p::first-line{background-color:yellow;}
+p::selection{background-color:yellow;} # 鼠标选中内容高亮黄色
+
+
+before 和 after 用的很多：
+<div>hello world</div>
+div::before # h前
+div::after # d后
+div::before{content:"abc"; color:red;}
+div::after{content:"xyz"; color:blue;}
+
+
+CSS 继承
+# =========================================================================
+
+继承发生在祖先和后代中
+
+将共同的样式一次性设置到祖先元素上
+
+并不是所有样式都会被继承，如背景和样式相关的
+background-color
+
+
+CSS 单位
+# =========================================================================
+
+像素
+
+百分比:跟随父元素变，灵活
+
+em ： 1em = 1 fontsize （16px）
+# em根据字体大小改变
+
+rem：相对于根元素字体大小
+# r指root，根元素html的font-size
+
+
+
+CSS 单位
+# =========================================================================
+
+RGB：
+background-color：rgb(255,0,0)
+屏幕取色器
+
+RGBa:
+a是透明
+
+十六进制：
+#ff0000 如果两位重复，可以简写成#f00
+#aabbcd 不可简写
+
+#bfc护眼颜色
+
+
+HSLA:工业设计里比较多
+H：色相， 取值范围（0-360）
+S：饱和度，颜色浓度，大红小红深红等，取值范围（0-100%）
+L：亮度，取值范围（0-100%）
+
+
+
+
+
+CSS List:
+# =========================================================================
+
+# class .a
+ul.a {
+  list-style-type: circle;
+}
+
+# use image as bullet point
+ul {
+  list-style-image: url('sqpurple.gif');
+}
+
+# bullet point outside/inside text frame
+ul.a {
+  list-style-position: outside/inside;
+}
+
+# no bullet point, there is by default
+ul.demo {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+# shorthand property
+ul {
+  list-style: square inside url("sqpurple.gif");
+}
+
+
+CSS table:
+# =========================================================================
+
+<table>
+<thead>
+<tr>
+<th>
+<tbody>
+<tfoot>
+<td>
+
+table {
+  border: 1px solid black;
+  border-collapse: collapse;
+  width: 100%;
+  height: 70px;
+  vertical-align: bottom;
+  empty-cells: hide/show; # Display no/with borders on empty cells in a table
+  caption-side: bottom/top; # position of a table caption
+  table-layout: auto/fixed;
+
+}
+
+th, td{
+
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  padding: 15px; # space between the border and the content in a table
+
+}
+
+
+th {
+  background-color: #4CAF50;
+  color: white;
+}
+
+tr {
+    hover {background-color:#f5f5f5;}
+    tr:nth-child(even) {background-color: #f2f2f2;}
+}
+
+
+Responsive Table:
+
+# Add a container element (like <div>) with overflow-x:auto around the 
+<table> element to make it responsive:
+
+<div style="overflow-x:auto;">
+<table>
+... table content ...
+</table>
+</div>
+
+
+CSS display
+# =========================================================================
+
+Every HTML element has a default display value depending on what type of element it is. 
+The default display value for most elements is block or inline.
+
+An inline element does not start on a new line and only takes up 
+as much width as necessary.
+Examples of inline elements:
+
+<span>
+<a>
+<img>
+
+
+The <script> element uses display: none; as default.
+
+Hiding an element can be done by setting the display property to none.
+
+visibility:hidden; also hides an element
+However, the element will still take up the same space as before. 
+The element will be hidden, but still affect the layout:
+
+h1.hidden {
+  visibility: hidden;
+}
+
+
+CSS Position
+# =========================================================================
+
+five different position values:
+static
+relative
+fixed
+absolute
+sticky
+
+
+
+文档流
+# =========================================================================
+
+normal flow
+
+网页是很多层，最底下一层是文档流
+
+元素有两个状态：
+在文档流中
+不在文档流中（脱离文档流）
+
+<div>是块元素
+块元素和行内元素在文档流中的特点
+
+
+
+盒子模型，框模型（box model）
+# =========================================================================
+
+所有元素都是个盒子，长方形
+
+content内容区
+padding内边距
+border边框
+margin外边距，盒子和其他盒子距离
+
+width和height指内容区大小
+
+
+设置border的参数：
+border-width
+border-color
+border-style：solid，dotted，dashed，double， none
+
+border-width： 10px, 20px, 30px, 40px; # 顺时针旋转
+
+border-width： 10px, 20px, 30px; # 上，左右，下
+
+border-width： 10px, 20px; # 上下，左右
+
+border-width： 10px; # 上下左右
+
+
+border-top-width: 10px; # top bottom right left
+border-color # 也可分别指定颜色
+border-style # 也可分别指定颜色
+
+
+<div class="box1>
+    <div class="inner">
+</div>
+
+
+
+
+CSS 水平方向布局
+# =========================================================================
+
+盒子可见框的大小，由内容区，内边框和边框共同决定
+
+500*500的盒子，是指三者相加是500px
+
+
+外边距margin不会影响可见框大小，会影响盒子实际的大小
+margin是和其他元素的距离
+
+margin-top/bottom/right/left
+左上-移动自己
+右下-移动其他元素
+
+margin可以是正值或者负值
+
+子元素7个值相加必须等于父元素的content width
+如果不相等（过度约束），则浏览器自动调整margin-right使等式满足
+
+width值默认是auto
+
+两个auto，宽度固定，则auto评分，盒子水平居中
+
+
+
+CSS 竖直方向布局
+# =========================================================================
+
+overflow在父元素中设置
+
+可选值：
+visible
+hidden
+scroll # 双方向滚动条
+auto # 根据需要自动生成滚动条
+
+overflow-x
+overflow-y
+
+
+相邻垂直方向外边距margin重叠
+兄弟元素之间相邻垂直方向外边距margin重叠取两者最大值
+父子元素之间相邻垂直方向外边距margin，子元素传递给父元素（上外边距）
+
+
+CSS 竖直方向布局
+# =========================================================================
+
+行内元素有也盒子模型，如span，a
+行内元素不支持height和width
+可以设置padding，border，margin
+
+
+display：用来设置元素显示的类型
+display：block # 把行内元素转换成块元素，如a{display:block; height:100px}
+display: in-line block # 行内块，能不用尽量不用
+display：table # 将元素设置为一个表格
+display: none # 元素不在页面中显示
+
+visibility:visible
+visibility:hidden
+
+display：none不占位
+visibility: hidden依然占位
+
+
+
+
+CSS 浏览器默认样式
+# =========================================================================
+
+默认样式的存在会影响页面布局，通常情况下编写网页时要去掉浏览器默认样式
+
+按F12查看页面，computed
+
+body{margin:0;}
+ul{list-style:none;} # 去除项目符号
+
+
+
+重置样式表：
+1. 最简单做法：*{margin:0;padding:0}
+
+直接用别人的，引入到自己css中
+2. <link rel="stylesheet" href="./css/reset.css">
+要放在最上边，否则可能把我们自己的样式覆盖掉
+3. <link rel="stylesheet" href="./css/normalise.css">
+
+
+
+CSS 盒子的大小
+# =========================================================================
+
+box-sizing # 用来设置盒子尺寸的计算方式
+可选值：
+content-box
+border-box
+
+
+
+CSS 轮廓阴影和圆角
+# =========================================================================
+
+阴影和轮廓都不会影响页面布局
+
+把border换成outline（轮廓），不会影响可见框大小，元素位置不变
+用的不多
+一般鼠标hover的时候用
+如.box1:hover{outline: 10px red solid;}
+
+box-shadow:设置元素阴影效果
+
+box-shadow：10px 10px 10px rgba(0,0,0,0.5); # 可正负值
+
+
+圆角：
+border-radius
+border-top-left-radius等
+border-top-left-radius：50px;
+border-top-left-radius：50px 100px;
+border-radius:20px / 40px;
+border-radius:50%; # 圆形
+
+
+
+
+浮动
+# =========================================================================
+
+浮动主要用来做水平布局
+
+Float
+可选值：
+none
+left
+right
+
+元素设置float之后，水平布局的等式不需要强制成立
+
+元素设置浮动float后，会从文档流中脱离，不在占用文档流位置
+
+浮动元素默认不会从父元素范围中移出
+
+浮动元素向左或向右移动时，不会超过它前面的其他浮动元素
+
+如果浮动元素的上面是个没有浮动的块元素，则浮动元素不会上去
+
+
+
+浮动元素不会盖住文字，会环绕在浮动元素周围
+
+脱离文档流后，block元素不在独占一行
+
+行内元素脱离文档流后，特点和块元素一样
+
+脱离文档流后，不需要区分block和inline元素了
+
+
+
+
+CSS练习
+# =========================================================================
+
+写css时按照tag从大到小顺序写，结构更清晰
+
+图片尺寸直接F12点击查看
+
+一般一个外部容器用nav，div，ul都可以
+nav(div),div(div),ul(li)
+
+文字在框里垂直居中，只需将父元素的line-height设置成和height一样的pixel
+line-height：25px; height：25px
+
+
+text-decoration:none; # 去除下划线
+
+给超链接绑定hover
+
+
+
+JSON 
+# =========================================================================
+
+json是存储和交换文本信息的语法。类似 XML
+
+Exchanging Data:
+When exchanging data between a browser and a server, the data can only be text.
+
+JSON is text, we can convert any JavaScript object into JSON, and send JSON to the server.
+
+We can also convert any JSON received from the server into JavaScript objects.
+
+This way we can work with the data as JavaScript objects, 
+with no complicated parsing and translations.
+
+
+JSON.stringify()：
+A common use of JSON is to exchange data to/from a web server.
+When sending data to a web server, the data has to be a string.
+Convert a JavaScript object into a string with JSON.stringify().
+
+JSON.parse():
+When receiving data from a web server, the data is always a string.
+convert a string, written in JSON format, into native JavaScript objects
+
+
+eg.
+<body>
+
+<h2>Create Object from JSON String</h2>
+
+<p id="demo"></p>
+
+<script>
+var txt = '{"name":"John", "age":30, "city":"New York"}'
+var obj = JSON.parse(txt);
+document.getElementById("demo").innerHTML = obj.name + ", " + obj.age;
+</script>
+
+</body>
+
+结果：
+Create Object from JSON String
+John, 30
+
+
+
+Nested JSON Objects：
+Values in a JSON object can be another JSON object.
+
+eg.
+myObj = {
+  "name":"John",
+  "age":30,
+  "cars": {
+    "car1":"Ford",
+    "car2":"BMW",
+    "car3":"Fiat"
+  }
+ }
+
+
+
+JSON names require double quotes. JavaScript names don't.
+
+JSON - 转换为 JavaScript 对象:
+JSON 文本格式在语法上与创建 JavaScript 对象的代码相同。
+
+由于这种相似性，无需解析器，JavaScript 程序能够使用
+内建的 eval() 函数，用 JSON 数据来生成原生的 JavaScript 对象。
+
+
+JSON 对象:
+{ "firstName":"John" , "lastName":"Doe" }
+
+
+JSON 数组:
+JSON 数组在[]中书写
+
+{
+"employees": [
+{ "firstName":"John" , "lastName":"Doe" },
+{ "firstName":"Anna" , "lastName":"Smith" },
+{ "firstName":"Peter" , "lastName":"Jones" }
+]
+}
+
+可以像这样访问 JavaScript 对象数组中的第一项：employees[0].lastName;
+
+
+JSON 最常见的用法之一，是从 web 服务器上读取 JSON 数据（作为文件或作为 HttpRequest），
+将 JSON 数据转换为 JavaScript 对象，然后在网页中使用该数据。
+
+Browser Support：
+The JSON.parse() function is included in all major browsers
+
+
+
+
+API
+# =========================================================================
+
+A Browser API can extend the functionality of a web browser.
+A Server API can extend the functionality of a web server.
+
+
+All browsers have a set of built-in Web APIs to support complex operations, 
+and to help accessing data.
+For example, the Geolocation API can return the coordinates of 
+where the browser is located.
+
+
+Third Party APIs:
+Third party APIs are not built into your browser.
+To use these APIs, you will have to download the code from the Web.
+
+Examples:
+YouTube API - Allows you to display videos on a web site.
+Twitter API - Allows you to display Tweets on a web site.
+Facebook API - Allows you to display Facebook info on a web site.
+
+
+Web History API:
+The Web History API provides easy methods to access the windows.history object.
+The window.history object contains the URLs (Web Sites) visited by the user.
+
+eg.
+<button onclick="myFunction()">Go Back</button>
+
+<script>
+function myFunction() {
+  window.history.back();
+}
+</script>
+
+
+History Object Methods:
+back()	Loads the previous URL in the history list
+forward()	Loads the next URL in the history list
+go()	Loads a specific URL from the history list
+
+
+Web Storage API:
+Web Storage API is a simple syntax for storing and retrieving data in the browser.
+
+
+Web Geolocation API:
+The HTML Geolocation API is used to get the geographical position of a user.
+
+
+
+
+Bootstrap
+# =========================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+Windows命令
+# =========================================================================
+
+ren: rename
+
+md, rd: make, remove directory
+
+del: delete files
+
+ipconfig/flushdns: refresh DNS address
+
+netstat - an: a list of currently open ports and related IP
+
+netstat -aon/findstr "8088"
+
+taskkill /pid 4512 -t -f
+
+shutdown -s -t 1000: 1000s 后关机
+
+shutdown -a : 取消关机
+
+shutdown -r: 重启
+
+shutdown -l: logout
+
+
+tasklist
+taskkill
+
+tracert google.com
+
+fc: compare 2 files
+
+cipher: wipe free space on the drive
+
+assoc: 后缀suffix
+
+notepad hello.html/txt
+
+
+
+attrib +h +s +r "+" foldername
+attrib -h -s -r "+" foldername
+
+color help
+
+color 07(default)
+
+title Mycommand: 改command window名字
+
+wmic product get name: a list of installed programs
+
+dir/clip: 保存output of the command to clipboard
+
+use tab to show file/folder names in current directory
+
+F7: all commands you have used till now
+
+net session: see if you run cmd as admin
+
+dir /b /s /sort: dir in a sorted way
+
+start google.com: 用cmd打开网页
+
+ping www.google.com: get IP address of any website
+
+windows + X
+
+
+# create WiFi hotspot
+netsh wlan set hostednetwork mode=allows
+ssid="hotspot name" key = "password of hotspot"(至少八位) 
+
+
+netsh wlan start hostednetwork
+netsh wlan stop hostednetwork
+
+
+
+
+
+
+
+
+
+
