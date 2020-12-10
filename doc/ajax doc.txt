@@ -1,0 +1,65 @@
+前端工程师必备
+
+不用刷新网页，就可以和服务器通信
+无刷新获取数据
+
+ajax缺点:
+没有浏览历史，不能回退
+存在跨域问题
+seo不友好（对爬虫不友好）
+
+
+如百度输入搜索字，菜单会猜你接下来打什么字
+输入用户名判断是否已经被注册
+
+
+ajax发送http协议
+
+asynchronous javascript and xml异步js and xml异步js
+
+
+
+xml 被用来传输和存储数据
+
+xml没有预定义标签
+
+已被json取代
+
+灵活度更高
+
+
+
+http：浏览器和万维网服务器之间通信的规则
+
+
+
+F12查看response 和 request
+
+
+请求报文：
+行： GET， URL， http
+头： POST， Cookie， Content type， user-agent
+空行
+体
+
+
+响应报文:
+行： http, 200,  OK
+头： Content type， content length, content-encoding
+空行
+体
+
+
+query string parameter请求字符串参数
+
+
+node.js
+express框架，基于node.js平台
+
+
+
+
+
+
+
+

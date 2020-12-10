@@ -1,0 +1,59 @@
+git 
+
+command line tool
+version control tool
+
+pull from and push information to a repository on the web
+
+remote/local repository
+
+github: a website to store git repository remotely on the web
+
+
+
+
+建一个叫gitignore的.txt文件，把不想track的文件名写进去
+
+git init
+git add .gitignore
+git status # how our code compares the code on the remote repository
+git add -A/git add ./git add -u
+git reset # 全部回到old version
+git reset example.py # 单独回到working directory
+git reset --hard<commit> # 用git log查看commit hash
+git reset --hard origin/master # revert to version stored on Github
+git log # 查看log of all changes
+git diff # 查看不同
+git commit -m "message"
+git commit -am "message" # equivalent of git add and git commmit combined
+git remote add origin "github repo URL"
+git push -u origin master
+如出现fatal: remote origin already exists
+解决方法：git remote rm origin
+git --version
+gitconfig --global user.name "_"
+gitconfig --global user.email "_"
+git config --list
+git help config
+git config --help
+
+
+
+
+git branch
+git checkout -b <new branch name>
+git checkout <new branch name> # switch between branches
+git branch -d <branch name> # delete branch
+git merge <other branch name> # merge two branches together
+可能会有merge conflict，要手动删除
+
+
+
+
+More Github Features:
+
+forking
+pull request
+github pages
+# go to settings page of Github, scroll down to Github pages 
+and see the website URL where you can find your site.

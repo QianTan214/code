@@ -1,0 +1,26 @@
+linux 
+
+linux主要发行版
+ubuntu
+redhat
+centos
+
+
+GNU/linux
+
+
+vmware虚拟机virtual machine（软件）
+centos系统
+
+安装vmware workstation pro
+视频里有许可证
+
+eth网卡
+
+dns域名解析器
+
+
+
+
+
+
