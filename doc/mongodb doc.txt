@@ -1,12 +1,59 @@
-关系型数据库
+
+
+No SQL简介
+# ===================================================================================
+
+NoSQL(NoSQL = Not Only SQL )，意即"不仅仅是SQL"。
+
+在现代的计算系统上每天网络上都会产生庞大的数据量。
+
+这些数据有很大一部分是由关系数据库管理系统（RDBMS）来处理
+
+NoSQL用于超大规模数据的存储。（例如谷歌或Facebook每天为他们的用户收集万亿比特的数据）。
+这些类型的数据存储不需要固定的模式，无需多余操作就可以横向扩展。
+
+
+
+
+
+No SQL优缺点
+# ===================================================================================
+
+优点:
+
+- 高可扩展性
+- 分布式计算
+- 低成本
+- 架构的灵活性，半结构化数据
+- 没有复杂的关系
+
+缺点:
+
+- 没有标准化
+- 有限的查询功能（到目前为止）
+- 最终一致是不直观的程序
+
+
+
+
+
+关系型数据库（RDBMS）和非关系型数据库（No SQL）
+# ===================================================================================
+
+关系型数据库:
 mysql，oracle，sql server
 关系型数据库中全是表
 
 
-非关系型数据库（No SQL）
+非关系型数据库（No SQL）:
 mongodb，redis
 文档数据库mongodb
 
+
+
+
+mongodb简介
+# ===================================================================================
 
 mongodb灵活，不用建表
 
@@ -23,6 +70,8 @@ mongodb偶数版为稳定版，奇数版为开发板
 默认port 27107
 可自定义port No 
 
+
+
 数据库：
 数据库的服务器：服务器用来保存数据，mongod用来启动服务器
 
@@ -36,17 +85,23 @@ mongodb偶数版为稳定版，奇数版为开发板
 c盘下创建data folder，在里面创建db和log文件夹
 
 
-
 菜单栏，任务管理器，服务，找到mongo，启动
 
 
 
-三个概念：
-数据库
+
+三个概念
+# ===================================================================================
+
+数据库database
 集合collection
 文档document，数据库中最小单位
 
 
+
+
+一些command指令
+# ===================================================================================
 
 显示当前所有数据库
 show dbs;
@@ -62,8 +117,14 @@ db;
 查看数据库里所有集合collections
 show collections;
 
-数据库的CRUD操作
-增删改查
+
+
+数据库的CRUD操作（增删改查）
+
+
+
+插入文档
+# ===================================================================================
 
 db.<collection名>.insert({doc}})
 向集合中插入一个文档
@@ -103,7 +164,9 @@ db.collections.insertMany()
 
 
 
-查询
+查询文档
+# ===================================================================================
+
 db.<collection>.find()
 查询集合中所有符合条件的文档
 
@@ -122,26 +185,597 @@ db.<collection>.find({}).count()
 
 
 
+修改文档
+# ===================================================================================
+
+db.<collection>.update(查询条件，新对象)
+db.people.update({name:"alice"},{age:19}) # 替换
+
+修改操作符update operator
+$ set
+
+db.people.update({"_id":objectid("...")},
+    {$set:
+    {age:19}
+)
+
+
+unset删除属性
+
+db.people.update({"_id":objectid("...")},
+    {$unset:
+    {age:19}
+)
+
+
+update默认修改一个
+db.people.updateMnay() # 修改多个
+db.people.updateOne()
+
+update里有个multi属性
+multi:true就是可以改多个
+
+
+
+删除文档
+# ===================================================================================
+
+
+db.collection.remove()
+db.collection.deleteOne()
+db.collection.deleteMany()
+
+
+db.collection.remove(传入条件)
+db.collection.remove({_id:"hello"})
+
+remove删除符合条件的所有文档
+
+remove里有个属性
+第二个参数设置为true，则可以删一个
+
+db.collection.remove({}) # 删除集合中所有文档
+
+db.collection.drop() # 删除集合
+
+db.dropdatabase() # 删除数据库
+
+isDel参数
+isDel:0 # 没删
+isDel:1 # 删了
+
+
+
+
+文档之间的关系
+# ===================================================================================
+
+一对一：很少
+一对多/多对一:最多
+多对多
+
+
+
+一对一
+# ===================================================================================
+
+一对一：可以通过内嵌文档的方式体现一对一
+db.wifeandhusband.insert(
+    {
+        name:"alice",
+        husband:{
+            name:"bob"
+        }
+    }
+);
+
+db.wifeandhusband.find()
+
+
+
+一对多
+# ===================================================================================
+
+一对多：如父母和孩子，用户和订单，文章和评论
+
+也可以通过内嵌文档的方式体现一对多
+
+和上面类似，只不过内嵌文档是数组
+
+db.users.insert([
+    {username:"alice"}，
+    {username:"bob"}
+]);
+
+
+db.orders.insert(
+    {list:["apple","pear"]}
+    user_id:ObjectId("alice的ID")
+);
+
+var user_id = db.users.findOne({username:"alice"})._id
+user_id
+db.order.find(
+    {user_id:user_id}
+);
+
+
+
+
+多对多：分类和商品，老师和学生
+# ===================================================================================
+
+db.teachers.insert([
+    {name:"alice"},
+    {name:"bob"},
+    {name:"charlie"}
+]);
+
+db.teachers.find();
+
+
+db.teachers.insert(
+    [
+        {name:"draco",
+        teacher_id:[
+            objectId("alice的ID")
+            objectId("bob的ID")
+        ]},
+        {name:"emma",
+        teacher_id:[
+            objectId("alice的ID")
+            objectId("bob的ID")
+        ]}
+
+    ]
+);
+
+
+
+
+sort和投影
+# ===================================================================================
+
+db.emp.find()
+db.emp.find({})
+db.emp.find({}).sort({sal:1}); # 1表示升序，-1表示降序
+db.emp.find({}).sort({sal:1，empno:-1}); # sal一样，empno按降序排序
+
+limit，skip，sort
+
+查询时，在第二个参数的位置设置查询结果的投影
+db.emp.find({}，{empno:1}); # 显示id和empno
+db.emp.find({}，{empno:1, _id:0}); # 不显示id
+db.emp.find({}，{empno:1, _id:0, sal:1});
+
+
+
+mongoose简介
+# ===================================================================================
+
+通过Node来操作MongoDB的模块
+
+mongoose是ODM，对象文档模型
+
+mongodb没有约束，想放什么放什么，关系型数据库在表里只能放column限制的东西
+
+
+mongoose可以为文档创建一个模式结构（schema），约束数据库中文档结构
+
+
+mongoose里的新对象schema，model，document，这三个创建必须按顺序
+
+
+mongoose里的model对应mongodb里的collection
+
+
+步骤：
+下载安装：mongoose, npm i mongoose --save
+
+引入mongoose： var mongoose = require ("mongoose");
+
+连接mongodb数据库：mongoose.connect(...)
+
+断开数据库连接，一般不需要
 
 
 
 
 
+创建schema
+# ===================================================================================
+
+赋值，可以省略此步
+var schema = mongoose.schema
+
+
+创建schema对象
+var stuschema = new schema(
+    {
+        name :string,
+        age:number,
+        gender:
+        {
+            type:string;
+            default:"female"
+        },
+        address:string
+    }
+);
+
+
+
+
+创建model
+# ===================================================================================
+
+通过schema创建model
+
+model代表的是数据库中的集合，通过model才能对数据库进行操作
+
+# student是集合,mongoose会自动将集合名编程复数
+var stumodel = mongoose.model("student", stuschema)
+
+
+向数据库中插入文档
+stumodel.create({
+    name:"alice",
+    age:18,
+    gender:"male",
+    address:"melb"
+},function(err){
+    iff(!err){
+        console.log("插入成功");
+    }
+});
 
 
 
 
 
+model的方法
+# ===================================================================================
+
+方法汇总：
+remove
+deleteone
+deletemany
+find
+findbyid
+findone
+count
+create
+update
+
+
+
+创建model
+有了model后，就可以对数据库进行增删改查操作
+
+API接口
+
+model里的方法
+
+model.create(docs, [callback])
+
+callback当操作完成以后调用的回调函数
+
+
+
+create方法
+# ===================================================================================
+
+stumodel.create([
+    {
+        name:"bob",
+        age:18,
+        gender:"male",
+        address:"melb" 
+    },
+    {
+        name:"charlie",
+        age:18,
+        gender:"male",
+        address:"melb"
+    }
+],function(err){
+    if (!err){
+        console.log("插入成功")
+    }
+});
+
+
+console.log(arguments);
+db.students.find();
 
 
 
 
 
+find方法
+# ===================================================================================
+
+
+model.find(conditions,[projection],[options],[callback]) # 返回数组
+model.findbyid()
+model.findone() # 返回一个具体的文档对象，不是返回数组
+
+
+conditions查询条件
+projection投影：想要显示的字段
+options查询选项（skip，limit）
+callback回调函数，查询结果会通过回调函数返回
+回调函数必须传，如果不传入回调函数，压根不会查询
+
+ stumodel.find({name:"alice"},function(err,docs){
+     if (!err){
+         console.log(docs);
+     }
+ });
+
+无论查到查不到都会返回数组
+查不到就返回空数组[]
+
+console.log(docs[0].name);
+
+
+projection投影:只显示name，不显示id
+ stumodel.find({},{name:1,_id:0},function(err,docs){
+     if (!err){
+         console.log(docs);
+     }
+ });
+
+
+projection投影:或者用字符串"name age -_id"
+-_id表示不显示id
+
+ stumodel.find({},"name age -_id",function(err,docs){
+     if (!err){
+         console.log(docs);
+     }
+ });
+
+
+
+options选项：一般有limit 和 skip
+
+skip：3表示跳过前三个,limit表示只显示一个
+
+ stumodel.find({},"name age -_id",{skip:3，limit:!},function(err,docs){
+     if (!err){
+         console.log(docs);
+     }
+ });
+
+
+
+
+findbyid用法
+
+ stumodel.findbyid("...填入id值",function(err,doc){
+     if (!err){
+         console.log(docs);
+     }
+ });
+
+
+总结：
+通过find查询的结果，返回的对象，就是document，文档对象
+document对象是model的实例
+上面例子中docs是stumodel的实例
+
+console.log(doc instanceof stumodel) # 会返回true
+证明doc是stumodel的实例
+
+
+
+
+update方法
+# ===================================================================================
+
+model.update(conditions,doc,[options],[callback])
+model.updatemany(conditions,doc,[options],[callback])
+model.updateone(conditions,doc,[options],[callback])
+model.replaceone(conditions,doc,[options],[callback])
+
+
+stumodel.updateone({name:"alice"},{$set:{age:20}},function(err){
+    if(!err){
+        console.log("修改成功")；
+    }
+});
 
 
 
 
 
+删除方法
+# ===================================================================================
 
+model.remove(conditions,[callback])
+model.deleteone(conditions,[callback])
+model.deletemany(conditions,[callback])
+
+stumodel.remove({name:"alice"},function(err){
+    if(!err){
+        console.log("删除成功");
+    }
+});
+
+
+
+
+
+count方法
+# ===================================================================================
+
+model.count(conditions,[callback])
+统计文档数量
+
+stumodel.count({},function(err, count){
+    if(!err){
+        console.log(count);
+    }
+});
+
+
+
+
+document的方法
+# ===================================================================================
+
+方法汇总：
+equals
+id
+get
+set
+update
+save
+remove
+isnew
+isinit
+tojson
+toobject
+
+
+document是model的实例
+
+创建一个document
+只是创建了一个文档对象，下面的语句并没有把它插进数据库
+用save方法存入数据库
+
+var stu= new stumodel({
+    name:"bob",
+    age:18,
+    gender:"male",
+    address:"melb"
+});
+
+console.log(stu);
+
+
+save方法:把文档存入数据库
+
+#号表示对象方法
+model#save([options],[function])
+
+stu.save(function(err){
+    if (!err){
+        console.log("保存成功")
+    }
+});
+
+
+所以两种方法，stumodel.create 和 stu#save
+
+
+
+update修改对象
+update(update,[options],[callback])
+
+doc.age = 19;
+doc.save();
+
+
+remove删除对象
+remove([callback])
+
+doc.remove(function (err){
+    if(!err){
+        console.log(“删除成功")
+    }
+});
+
+
+
+get方法
+get(name) # 获取文档中指定属性值
+
+console.log(doc.get("name"));
+console.log(doc.get("age"));
+console.log(doc.age);
+
+
+
+set方法
+set(name,value) # 设定文档中指定属性值
+
+doc.set("name","draco"); # 把name属性的值改为draco
+console.log(doc);
+数据库里没变，需要用save存到数据库
+
+
+doc.name = "draco"; 也可
+
+
+
+id方法
+获取文档的_id属性值
+console.log(doc.id);
+console.log(doc._id);
+
+
+tojson方法
+转换为json对象
+
+
+tobject方法
+将document对象转换为一个普通的javascript对象
+转换为一个普通的javascript对象后，所有document的方法和属性都不能用了
+
+
+
+
+mongoose的模块化
+# ===================================================================================
+
+因为每次如果都需要连接数据库和创建schema的话会比较麻烦
+
+
+1. 连接数据库：
+在一个新的js文档下创建一个新的模块，来连接mongodb数据库
+
+var mongoose = requrie("mongoose");
+
+# mongoose_test是数据库的名字
+mongoose.connect("mongodb://127.0.0.1/mongoose_test",{usemongoclient:true});
+
+mongoose.connection.once("open"),function(){
+    console.log("数据库连接成功");
+});
+
+
+在另一个文件中直接引用上面的文件
+require("./tools/conn_mongo");
+
+
+
+2. 创建schema
+建一个新的js文件
+
+用来定义student模型
+
+var mongoose = requrie("mongoose");
+
+var schema  = mongoose.schema;
+
+var stuschema = new schema(
+{
+    name :string,
+    age:number,
+    gender:
+    {
+        type:string;
+        default:"female"
+    },
+    address:string
+}
+);
+
+定义模型
+var stumodel = mongoose.model("student", stuschema);
+
+model.exports = stumodel;
 
 

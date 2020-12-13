@@ -1,0 +1,80 @@
+randint
+bigint
+
+
+import scala.math_
+abs(-1)
+cbrt(8)
+ceil(5.45)
+round(5.45)
+floor(5.45)
+exp(1)
+pow(2,2)
+sqrt(4)
+hypot(2,2)
+log10(1000)
+log(e)
+min(5,10)
+max(5,10)
+(random*(11-1)+1).toint
+(random*(11-1)+1).toint
+(random*(11-1)+1).toint
+
+toradians(90)
+todegrees(1.57)
+
+
+
+
+conditional operators
+
+logical operators
+
+car age = 18
+
+val canvote = if (age >=18) "yes" else "no"
+
+if ((age >=5) && (age <=7)){
+    | println("go to kindergarten")
+    |}else if ((age >6 ) && (age <=7)){
+        println("go to grade 1")
+        |}else{
+            println("go to grade" + (age - 5))
+        }
+    }
+
+
+true || false  
+
+
+
+eg.
+object scalatutorial{
+    def main(args: Array[string]){
+        var i = 0
+        while (i<=10){
+            println(i)
+            i+=1
+        }
+    }
+}
+
+运行输入指令：scala scalatutorial.scala
+
+do while loop
+
+for loop
+
+for (i<-1 to 10)
+
+val randletters="abcjkdjflskjf"
+for (i<-1 until randletters.length)
+
+val alist = list(1,2,3,4,5)
+for(i<-alist)
+
+yield i
+
+
+
+

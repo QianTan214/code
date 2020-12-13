@@ -1,21 +1,17 @@
+
+
 前端工程师必备
+# ===================================================================================
 
-不用刷新网页，就可以和服务器通信
-无刷新获取数据
+asynchronous javascript and xml：异步js and xml
 
-ajax缺点:
-没有浏览历史，不能回退
-存在跨域问题
-seo不友好（对爬虫不友好）
+ajax 是一种浏览器通过javascript异步发起请求，局部更新页面的技术
 
+异步，不需要等待服务器返回response，用户体验好
+同步，等待服务器返回response前，页面其他功能用不了
+局部更新，地址栏地址不变
 
-如百度输入搜索字，菜单会猜你接下来打什么字
-输入用户名判断是否已经被注册
-
-
-ajax发送http协议
-
-asynchronous javascript and xml异步js and xml异步js
+不用刷新网页，就可以和服务器通信，获取数据
 
 
 
@@ -29,25 +25,23 @@ xml没有预定义标签
 
 
 
-http：浏览器和万维网服务器之间通信的规则
+ajax缺点
+# ===================================================================================
+
+没有浏览历史，不能回退
+存在跨域问题
+seo不友好（对爬虫不友好）
 
 
 
-F12查看response 和 request
+ajax应用
+# ===================================================================================
+
+如百度输入搜索字，菜单会猜你接下来打什么字
+输入用户名判断是否已经被注册
 
 
-请求报文：
-行： GET， URL， http
-头： POST， Cookie， Content type， user-agent
-空行
-体
-
-
-响应报文:
-行： http, 200,  OK
-头： Content type， content length, content-encoding
-空行
-体
+ajax发送http协议
 
 
 query string parameter请求字符串参数
@@ -58,6 +52,43 @@ express框架，基于node.js平台
 
 
 
+
+原生javascript的ajax请求
+# ===================================================================================
+
+创建xmlhttprequest对象
+var xmlhttprequest = new xmlhttprequest()
+
+
+调用open方法设置请求参数
+xmlhttprequest.open("GET","http..."，true); # true是异步，false同步
+
+
+在send方法前绑定onreadystatechange事件，处理请求完成后的操作
+xmlhttprequest.onreadystatechange = function(){
+    if (xmlhttprequest.readystate == 4 && xmlhttprequest.status == 200){
+        xmlhttprequest.responseText;   
+    }
+
+}
+
+
+调用send方法发送请求
+xmlhttprequest.send();
+
+
+通常我们不会写原生的ajax请求
+
+
+
+xmlhttprequest三个重要属性
+# ===================================================================================
+
+onreadystatechange
+readystate: 0 1 2 3 4
+status: 200 400
+
+readystate = 4 而且 status = 200 时，表示相应已就绪
 
 
 

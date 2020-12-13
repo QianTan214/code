@@ -1,0 +1,115 @@
+
+
+json介绍
+# ===================================================================================
+
+json是轻量级数据交换格式
+
+易于人们阅读和编写，易于机器解析和生成
+
+轻量级是指和xml比较
+
+数据交换是指客户端和服务器之间数据的传递格式
+
+在客户端使用json
+
+
+
+
+
+json定义
+# ===================================================================================
+
+var jsonObj = {
+    "key1":1,
+    "key2":"abc",
+    "key3":true,
+    "key4":[1, "arr", false],
+    "key5":{
+        "key5_1: 551,
+        "key5_2:"key5_2_value"
+    },
+    "key6":[{
+        "key6_1_1: 6611,
+        "key6_1_2:"key6_1_2_value"
+    },{
+        "key6_2_1: 6621,
+        "key6_2_2:"key6_2_2_value"
+    }]
+
+}
+
+
+json就是一个对象
+
+alert(jsonObj.key1)
+alert(jsonObj.key4) # 得到数组
+
+json中遍历数组
+for (var i=0; i <jsonObj.key4.length; i++){
+    alert(jsonObj.key4[i]);
+}
+
+
+alert(jsonObj.key5) # 得到json对象
+alert(jsonObj.key5.key5_1);
+
+
+alert(jsonObj.key6) # 得到json数组
+alert(jsonObj.key6) 
+
+
+var jsonItem = jsonObj.key6[0];
+alert(jsonItem.key6_1_1); # 6611
+
+
+
+json两个常用方法
+# ===================================================================================
+
+
+json存在的两种形式：对象，字符串
+json对象，json字符串，两者可以互相转换
+
+一般操作json中数据时，需要json对象形式
+一般在客户端和服务器之间进行数据交换时，使用json字符串
+
+
+json.stringify() # 转换成json字符串
+json.parse() # 转换成json对象
+
+
+json对象转为json字符串：
+var jsonObjString = JSON.stringify(jsonObj);
+alert(jsonObjString)
+
+
+json字符串转为json对象：
+var jsonObj2 = JSON.parse(jsonObjString)
+alert(jsonObj2)
+
+
+
+
+服务器端json如何使用
+# ===================================================================================
+
+服务器用java写，也就是json在java中如何使用
+
+javabean 和 json
+
+list 和 json
+
+map 和 json
+
+
+
+
+
+
+
+
+
+
+
+

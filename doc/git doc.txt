@@ -1,4 +1,7 @@
-git 
+
+
+git简介
+# ===================================================================================
 
 command line tool
 version control tool
@@ -12,8 +15,10 @@ github: a website to store git repository remotely on the web
 
 
 
-建一个叫gitignore的.txt文件，把不想track的文件名写进去
+git command
+# ===================================================================================
 
+建一个叫gitignore的.txt文件，把不想track的文件名写进去
 git init
 git add .gitignore
 git status # how our code compares the code on the remote repository
@@ -39,6 +44,8 @@ git config --help
 
 
 
+branch
+# ===================================================================================
 
 git branch
 git checkout -b <new branch name>
@@ -50,7 +57,9 @@ git merge <other branch name> # merge two branches together
 
 
 
+
 More Github Features:
+# ===================================================================================
 
 forking
 pull request

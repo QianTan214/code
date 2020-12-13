@@ -1296,6 +1296,422 @@ select sum;
 
 
 
+
+
+存储过程和函数
+# ===================================================================================
+
+存储过程和函数类似于java的方法
+
+
+存储过程的好处：
+提高代码重用性，简化代码操作
+减少编译次数
+减少和数据库服务器的连接次数，提高了效率
+
+
+存储过程：
+一组预先编译好的sql语句的集合，可理解成批量处理语句
+调用一个名字即可，不暴露里面内容
+
+
+
+存储过程的语法：
+创建，调用语法
+
+create procedure 存储过程名字 （参数列表）
+begin
+    存储过程体（一组合法的sql语句）
+end
+
+
+参数列表包含三部分：
+参数模式，参数名，参数类型
+in stuname varchar(20)
+
+
+参数模式：
+in：该参数可以作为输入，也就是该参数需要调用方传入值
+out：该参数可以作为输出，该参数可以作为返回值
+inout：该参数可以作为输入，又可作为输出，也就是该参数既需要传入值，又可以返回值
+
+
+begin end
+存储过程体（一组合法的sql语句）只有一句话，begin end可省略
+
+存储过程体中每条sql语句结尾必须加分号
+
+存储过程的结尾可以使用delimiter重新设置
+
+语法：
+delimiter + 结束标记
+如delimiter $
+
+
+
+调用语法：
+call 存储过程名（实参列表）;
+
+
+
+
+
+空参的存储过程
+# ===================================================================================
+
+1. 空参列表
+case：插入到admin表5条记录
+
+select * from admin;
+
+
+delimiter $
+create procedure myp1() # 无参数
+begin
+    insert into admin(username,password) values("alice","12345"),
+    ("alice","12345"),("alice","12345"),("alice","12345"),("alice","12345");
+end $ 
+
+
+在cmd里查看和输入指令
+
+
+调用
+call myp1()$
+
+
+
+
+
+带in模式的存储过程
+# ===================================================================================
+
+案例一：
+
+create procedure myp2(in beautyname varchar(20)) # beautyname是局部变量
+begin
+    select bo.* from boys bo
+    right join beauty b on bo.id = b.boy_friend_id
+    where b.name = beautyname;
+end $ 
+
+
+调用
+call myp2("小昭")$
+
+set names gbk$
+
+
+查看视频另外例子
+
+
+
+带out模式的存储过程
+# ===================================================================================
+
+create procedure myp5(in beautyname varchar(20), out boyname varchar(20))
+
+begin
+    select bo.boyname
+    from boy bo
+    inner join beauty b on bo.id = boy_friend_id
+    where b.name = beautyname;
+end$
+
+
+
+调用
+
+set@bname$
+call myp5("小昭",@bname)$
+select @name$
+
+
+查看视频另外例子
+
+
+
+
+
+
+带inout模式的存储过程
+# ===================================================================================
+
+
+传入a和b两个值，最终a和b都翻倍返回
+
+create procedure myp8(inout a int, inout b int)
+begin
+    set a = a*2;
+    set b = b*2;
+end $ 
+
+
+调用
+
+set @m=10$
+set @n=20$
+call myp8(@m,@n)
+select @m,@n$
+
+
+
+
+删除存储过程
+# ===================================================================================
+
+
+drop procedure 存储过程名称
+
+drop procedure p1;
+
+不可以一次删除多个
+
+
+
+
+查看存储过程
+# ===================================================================================
+
+show create procedure myp2;
+
+
+没有修改功能，要修改，只能删除再建
+
+
+
+函数介绍
+# ===================================================================================
+
+函数和存储过程的区别
+
+存储过程：可以有0个返回，也可以有多个返回，适合做批量插入，批量更新
+函数：有且仅有一个返回，适合做处理数据后返回一个结果
+
+
+
+
+函数创建和调用语法
+# ===================================================================================
+
+创建语法:
+
+create function 函数名（参数列表） returns 返回类型
+begin
+    函数体
+end
+
+
+注意：参数列表包含两部分，参数名和参数类型
+
+函数体肯定会有return语句，如果没有会报错
+
+如果函数体中只有一句话，begin end可省略
+
+使用delimiter语句设置结束标记
+
+
+
+调用语法:
+
+select 函数名 （参数列表）
+
+
+
+
+
+函数创建和调用案例
+# ===================================================================================
+
+1. 无参，有返回
+
+案例一：返回公司员工个数
+
+create function myf1() returns int
+begin
+    declare c int default 0; # 定义变量
+    select count(*) into c # 赋值
+    from employees;
+    return c;
+end $
+
+
+调用语法：
+select myf1() $
+
+
+
+2. 有参，有返回
+
+案例一：
+根据员工名，返回工资
+
+
+create function myf2(empname varchar(20)) returns double
+begin
+    set @sal=0; #定义用户变量
+    select salary into @sal #赋值
+    from employees 
+    where lastname = empname;
+    return @sal;
+end$
+
+
+
+调用语法：
+select myf2("alice") $
+
+
+
+
+案例一：
+根据部门名，返回该部门平均工资
+
+
+create function myf3(deptname varchar(20)) returns double
+begin
+    declare sal double; #定义局部变量
+    select avg(salary) into sal #赋值
+    from employees e
+    inner join departments d on e.department_id = d.department_id
+    where d.department_name = deptname;
+    return sal;
+end$
+
+
+
+调用语法：
+select myf3("IT") $
+
+
+
+
+
+
+函数的查看和删除
+# ===================================================================================
+
+
+查看函数
+
+show create function myf3;
+
+删除函数
+
+drop function myf3;
+
+
+
+
+创建函数案例
+# ===================================================================================
+
+创建函数，实现传入两个float，返回二者之和
+
+create function test_fun1(num1 float, num2 float) returns float
+begin
+    declare result float default 0;
+    set result = num1+num2;
+    return result;
+end $
+
+
+调用
+select test_fun1(1,2)$
+
+
+
+
+
+流程控制结构
+# ===================================================================================
+
+三大类：
+顺序结构：程序从上往下依次执行
+分支结构：程序从多条路径选择一条执行
+循环结构：程序在满足一定条件基础上，重复执行一段代码
+
+如果一次插入五万行记录，就会用到循环结构了
+
+
+
+
+分支结构
+# ===================================================================================
+
+if 函数
+
+实现简单的双分支
+
+select if(表达式一，表达式二，表达式三)
+
+应用：可以用在任何地方
+
+
+
+
+分支结构：case
+# ===================================================================================
+
+
+情况一：类似java中switch语句，一般用于实现等值判断
+
+语法：
+case 变量|表达式|字段
+when 要判断的值 then 返回的值1或语句;
+when 要判断的值 then 返回的值2或语句;
+when 要判断的值 then 返回的值3或语句;
+...
+else 要返回的值n或语句;
+end case;
+
+
+
+情况二：类似java中多重if语句，一般用于实现区间判断
+
+
+语法：
+case 
+when 要判断的条件一 then 返回的值1或语句; # 如果是语句，则end case，如果是值，则end
+when 要判断的条件一 then 返回的值2或语句;
+when 要判断的条件一 then 返回的值3或语句;
+...
+else 要返回的值n或语句;
+end case;
+
+
+特点：
+
+可以作为表达式，嵌套在其他语句中使用，可以放在任何地方，begin end中或外面
+
+可以作为独立语句使用，只能放在begin end中
+
+如果都不满足，返回null
+
+
+
+案例一：
+
+创建存储过程，根据传入的成绩，来显示等级
+
+create procedure test_case(in score int)
+begin
+    case 
+    when score >=90 and score <=100 then select "A";
+    when score >=80 then select "B";
+    when score >=70 then select "C";
+    else select "D";
+    end case;
+end$
+
+
+调用
+call test_case(95) $
+
+
+
+
+
 MySQL高级
 # ===================================================================================
 
