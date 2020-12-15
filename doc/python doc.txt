@@ -1,0 +1,142 @@
+
+True 和 False
+# ===================================================================================
+
+
+在python中 None,  False, 空字符串"", 0, 空列表[], 空字典{}, 空元组()都相当于False 
+
+即：not None == not False == not '' == not 0 == not [] == not {} == not ()
+
+
+"" in "" # True
+
+Bool("") # False
+
+"" is False # False
+
+[] is False # False
+
+[] is None # False
+
+
+for i in reversed(range(len(digits))):
+
+or i in (range(len(digits) -1 , -1, -1)):
+
+
+Zip
+Zip_longest
+
+
+
+
+divmod
+# ===================================================================================
+
+divmod(8, 3) =  (2, 2)
+divmod(3, 8) =  (0, 3)
+divmod(5, 5) =  (1, 0)
+divmod(8.0, 3) =  (2.0, 2.0)
+divmod(3, 8.0) =  (0.0, 3.0)
+divmod(7.5, 2.5) =  (3.0, 0.0)
+divmod(2.6, 0.5) =  (5.0, 0.10000000000000009)
+
+
+
+bin
+# ===================================================================================
+
+return str(bin(int(a, 2) + int(b, 2)))[2:]
+bin(5): 0b101
+Bin() converts and returns the binary equivalent string of a given integer
+
+int("100", 2) = 4 with base of 2 
+# "100" is a string, 算法：1*2^2 *0*2^1 + 0 = 4
+
+int("100", 4) = 16 with base of 4
+
+// the floor division 
+// rounds the result down to the nearest whole number
+
+3.5 // 2 = 1.0
+3.5 / 2 = 1.75
+
+int (2.63) = 2
+
+Round(2.5) = 2
+Round(2.6) = 3
+
+>>> 8 / 2 = 4.0
+>>> 8 // 2 = 4
+
+>>> 8.1 // 2 = 4.0
+>>> 8.1 / 2 = 4.05
+
+
+
+list
+# ===================================================================================
+
+lis = [2, 1, 3, 5, 4, 3, 8]
+del lis[2 : 5]
+List elements after deleting are : 2 1 3 8
+
+lis.insert(3, 4)
+List elements after inserting 4 are : 2 1 3 4 5 4 3 8
+
+
+lis1 = [2, 1, 3, 5]
+lis2 = [6, 4, 3]
+List elements after extending are : 2 1 3 5 6 4 3
+
+
+remove():- This function is used to delete the first occurrence
+of number mentioned in its arguments.
+
+If not s.isalnum():
+
+
+所有数，每5个取一个L[::5]
+前10个数，每两个取一个：L[:10:2]
+后10个数：L[-10:]
+
+
+
+Python中字典的比较同其他类型的比较类似，都是通过返回的整数值来比较大小的。而字典的比较python中提到了一个方法，这个方法是cmp()，它可以返回除-1,0,1外的其他值。下面我们来看看它是怎么实现的。
+(1) 比较字典的长度
+如果字典的长度不同，那么用cmp(dict1,dict2)比较大小时，如果字典dict1比dict2长，cmp()返回正值，如果dict2比dict1长，则返回负值。也就是说，字典中的键的个数越多，这个字典就愈大，即：
+        len(dict1) > len(dict2)  <=> dict1 > dict2
+       (2) 比较字典的键
+如果两个字典的长度相同，那么就比较字典的键；键的比较顺序和keys()方法返回键的顺序相同（相同的键会映射到哈希表的同一个位置，这就保证了对字典键的检查的一致性）。这时，如果两个字典的键不匹配时，对这两个键进行比较就可以了。如果dict1中的第一个不同的键大于dict2中的第一个不同键，cmp()返回正值。
+       (3)比较字典的值
+如果两个字典的长度相同并且它们的键也相同，则用字典中每个相同的键所对应的的值进行比较。一旦出现不匹配的值，就可以对这两个字典进行比较了。如果dict1比dict2中相同的键所对应的值大，cmp()会返回正值。
+       (4) Exact Match
+到此为止，即每个字典有相同的长度、相同的键以及每个键的值也相同时，就说明这两个字典是相同的，cmp()返回0值。
+另外，字符串、元组及列表中也有比较方法cmp()，其原理也基本相同，这里不再一一说明
+
+
+
+
+lists = [[] for i in range(3)]
+
+
+matrix = [[False for i in range(2)] for j in range(5)]
+
+
+defaultdict
+# ===================================================================================
+
+from collections import defaultdict 
+
+# Defining a dict 
+d = defaultdict(list) 
+
+for i in range(5): 
+d[i].append(i) 
+
+print("Dictionary with values as list:") 
+print(d) 
+
+结果：
+Dictionary with values as list:
+defaultdict(<class 'list'>, {0: [0], 1: [1], 2: [2], 3: [3], 4: [4]})

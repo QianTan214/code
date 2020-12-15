@@ -18,8 +18,10 @@ github: a website to store git repository remotely on the web
 git command
 # ===================================================================================
 
+command页面按q退出
+
 建一个叫gitignore的.txt文件，把不想track的文件名写进去
-git init
+git init #  create an empty Git repository or reinitialize an existing one
 git add .gitignore
 git status # how our code compares the code on the remote repository
 git add -A/git add ./git add -u
@@ -35,6 +37,8 @@ git remote add origin "github repo URL"
 git push -u origin master
 如出现fatal: remote origin already exists
 解决方法：git remote rm origin
+
+
 git --version
 gitconfig --global user.name "_"
 gitconfig --global user.email "_"
@@ -63,6 +67,5 @@ More Github Features:
 
 forking
 pull request
-github pages
-# go to settings page of Github, scroll down to Github pages 
+github pages: go to settings page of Github, scroll down to Github pages 
 and see the website URL where you can find your site.

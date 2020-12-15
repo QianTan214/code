@@ -12,6 +12,18 @@ http协议中的数据，又叫报文
 
 
 
+HTTP methods
+# ===================================================================================
+
+GET: retrieve data from a specified resource
+
+POST: submit data to be processed to a specified resource
+
+PUT: update a specified resource
+
+DELETE: delete a specified resource
+
+
 
 GET请求HTTP协议的内容：
 # ===================================================================================

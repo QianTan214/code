@@ -1,3 +1,4 @@
+
 MySQL
 # ===================================================================================
 
@@ -380,15 +381,24 @@ and d.location_id = l.location_id;
 自连接（sql92标准）
 # ===================================================================================
 
-同一张表里查询
+在同一张表里查询
 
-查询员工名和上级的名称
-
-eg. sql92标准
+例子：查询员工名和上级的名称
+使用sql92标准
 
 select e.employee_id,e.last_name, m.manager_id, m.last_name
 from employees e, employees m;
 where e.manager_id = m.manager_id;
+
+
+例子：查询员姓名中包含字符k的员工名和上级的名称
+使用sql99标准
+
+select e.last_name, m.last_name
+from employees e
+join employees m
+on e.manager_id = m.manager_id
+where e.last_name like %k%;
 
 
 group by和having里最好不用用别名，mysql支持，其他很多不支持
@@ -406,7 +416,7 @@ group by和having里最好不用用别名，mysql支持，其他很多不支持
 等值连接（sql99标准）
 # ===================================================================================
 
-table 1 inner join table 2 on = 
+table 1 （inner） join table 2 on = 
 
 inner 可省略，直接写join
 
@@ -450,19 +460,56 @@ right join右边是主表
 
 要查询的信息在哪个表一般就是主表
 
-select d.*, e.employee_id from departments d
+
+例子：查询男朋友不在男神表的女神名
+使用left outer join
+
+select * from beauty;
+select * from boys;
+
+select b.name, bo.*
+from beauty b
+left outer join boys bo
+on b.boyfriend_id = bo.id
+where bo.id is null;
+
+
+
+例子：查询男朋友不在男神表的女神名
+使用right outer join
+
+select * from beauty;
+select * from boys;
+
+select b.name, bo.*
+from boys bo
+right outer join beauty b
+on b.boyfriend_id = bo.id
+where bo.id is null;
+
+
+
+例子：查询哪个部门没有员工
+使用left outer join
+
+select d.*, e.employee_id 
+from departments d
 left outer join employees e
 on d.department_id = e.department_id
 where e.employee_id is null;
 
 
+
+
 全外连接（mysql不支持）
+# ===================================================================================
 
 full outer join
 
 不分主从表
 
 外连接显示结果 = 内连接结果 + 主表有从表没有的记录 + 从表中有主表中没有的记录
+
 
 
 
@@ -1712,14 +1759,254 @@ call test_case(95) $
 
 
 
-MySQL高级
+分支结构：if结构
 # ===================================================================================
 
-完整的mysql优化需要很深功底
+实现多重分支
 
-IT时代编程DT时代
+语法：
+if 条件1 then 语句1;
+elseif 条件2 then 语句2;
+...
+else 语句n;
 
-mysql linux版本
-mysql 5.5
+
+应用：
+应用在begin end中
+
+
+create function test_if(score int) returns char # char(1)里的1可省略
+begin
+    case 
+    when score >=90 and score <=100 then return "A";
+    when score >=80 then return "B";
+    when score >=70 then return "C";
+    else return "D";
+    end if;
+end$
+
+
+
+
+
+循环结构
+# ===================================================================================
+
+循环结构一定要在begin end中
+
+循环语句:
+while, loop, repeat
+
+
+循环控制语句：
+iterate类似于continue，继续
+leave类似于break，跳出
+
+
+下面的语句中[标签]可省略optional
+
+
+1. while语法：
+先判断后执行
+
+
+[标签:]while 循环条件 do
+    循环体;
+end while [标签];
+
+
+
+2. loop语法：
+可以用来模拟简单的死循环
+
+
+[标签:]loop 循环体
+end loop [标签];
+
+
+
+
+3. repeat语法：
+先执行后判断，至少执行一次，类似于do while
+
+
+[标签:]repeat 循环体
+until 结束循环的条件
+end repeat [标签];
+
+
+
+
+
+循环结构演示
+# ===================================================================================
+
+1. 批量插入到admin表
+
+建procedure，不建function，因为没有返回
+
+create procedure pro_while1(in insertcount int)
+begin
+    declare i int default 1;
+    (a:)while i<=insertcount do
+        insert into admin(username, password) values (concat("rose", i), "666");
+        set i=i+1;
+    end while(a);
+end$
+
+没有用到循环控制， (a:)和(a)是可省略的
+
+
+调用语法：
+call pro_while1(100)$
+
+
+
+
+2. 批量插入到admin表，次数大于20，则停止，添加leave语句
+
+把上例中admin table删了
+truncate table admin$
+drop procedure test_while1
+
+
+create procedure test_while1(in insertcount int)
+begin
+    declare i int default 1;
+    a:while i<=insertcount do
+        insert into admin(username, password) values (concat("rose", i), "666");
+        if i >=20, then leave a; # leave后面必须加名字
+        end if;
+        set i=i+1;
+    end while a;
+end$
+
+用到了循环控制leave， a:和a是不可以省略的
+
+
+调用语法：
+call test_while1(100)$
+
+
+
+
+3. 批量插入到admin表，只插入偶数次，添加iterate语句
+
+把上例中admin table删了
+truncate table admin$
+drop procedure test_while1
+
+
+create procedure test_while1(in insertcount int)
+begin
+    declare i int default 0;
+    a:while i<=insertcount do
+        set i=i+1;
+        if mod(i,2) != 0 then iterate a;
+        end if;
+        insert into admin(username, password) values (concat("rose", i), "666");
+    end while a;
+end$
+
+用到了循环控制continue， a:和a是不可以省略的
+
+
+调用语法：
+call test_while1(100)$
+
+
+
+
+
+流程控制经典案例
+# ===================================================================================
+
+案例：
+表stringcontent，其中字段id自增长，content varchar（20）
+向该表出入指定个数的随机字符串
+
+drop table if exists stringcontent;
+
+create table stringcontent(
+    id int primary key auto_increment,
+    content varchar(20)
+);
+
+
+delimiter $
+create procedure test_randstr_insert(in insertcount int)
+begin
+    declare i int default 1;
+    declare str varchar(26) default "abcdefghijklmnopqrstuvwxyz"
+    declare startindex int default 1; # 代表起始索引
+    declare len int default 1; # 代表截取字符的长度
+    while i<=insertcount do
+
+        set len = floor(rand()*(20-startindex+1)+1); # 20因为content varchar最大是20
+        set startindex = floor(rand()*26+1); # floor向下取整
+        insert into stringcontent(content) values (substring(str, startindex, len));
+        set i=i+1;
+end$
+
+
+调用语法：
+call test_randstr_insert(10) $
+
+
+
+
+
+总结
+# ===================================================================================
+
+可以想象有张表，里面是id， name， salary， departmentid的例子
+表里的departmentid是另一个department表的foreign key
+
+
+select + 列名
+from + 表名
+where + logical condition
+group by + 列名
+having + logical condition
+order by + 列名
+
+
+select distinct # unqiue value in a column
+
+
+多个table不可以用逗号连在一起，要用join
+
+like %a%
+
+
+in的用法（类似或）
+
+group by with aggregation function
+aggregation function: count,distinct, min, max, avg, sum等
+
+
+要用having 必须要和group by一起用
+
+
+order by默认asc
+
+
+inner join on - return records that exist in both tables, and exclude unmatched records
+left join on - 左边全有，右边没有就是null
+right join on
+outer join on
+
+
+union连接两个table，union是去重的（deduplicate）
+
+select from 第一个表名
+union
+select from 第二个表名
+
+两个select from行数必须相同
+
+不想去重，用union all
+
+
 
 

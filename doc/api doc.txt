@@ -1,0 +1,182 @@
+
+API
+# ===================================================================================
+
+application programming interface
+
+应用程序接口
+
+API esstntially is contract provided by one piece of software to another
+structured request and response
+
+API calls limit: number of requests you can make to instagram API using 
+one access token druing one rate limit period
+
+
+
+
+API举例
+# ===================================================================================
+
+一般都是web API
+
+
+1. 可以想象成顾客和厨师，服务员就是API
+
+2. 登录微博可以通过微信，qq等软件的账号（调用第三方登录，如果自己不想花时间开发）
+
+3. 一些网站可以通过gmail登录
+google给了这个网站接口，把这个网站插入goolge的接口即可，这是google login API
+
+4. youtube左下角developer点开，找到data API，里面讲明了java，python等
+语言如何调用youtube的API, 因为开发网站时可以用各种语言如java，python等
+
+
+
+
+为什么这些大型公司给我们使用它们的数据?
+# ===================================================================================
+
+并没有给我们源代码，只是给我们接口
+这些大公司可以了解到我们的使用习惯，获取用户的数据
+
+
+我们开发网站，可以调用许许多多的API
+
+RapidAPI.com可查看很多API
+
+
+ 
+
+
+RESTful API架构
+# ===================================================================================
+
+REST API: Representational State Transfer API
+
+资源的表现层状态转化
+
+资源：网络上的一个实体，如一个文本，图片，歌曲，一个具体实例，每种资源对应一个特定URI
+
+表现层：资源具体呈现出来的形式，叫做它的表现层
+
+状态转换：客户端想要操作服务器，必须通过某种手段，让服务器端发生状态转换
+客户端用到的手段只能是HTTP协议，里面的四种操作GET, POST, PUT, DELETE
+
+在Restful架构中，每个网址代表一种资源，所以网站中不能有动词，只能有名词，所用名词往往
+与数据库表格名对应
+
+most programming languages can make HTTP requests so they can work with REST
+
+
+例子：Facebook's graph API
+
+try www.facebook.com/youtube
+try graph.facebook.com/youtube
+try graph.facebook.com/youtube?fields=id,name,likes
+
+
+
+
+
+到底什么是RESTful架构
+# ===================================================================================
+
+每个URI代表一种资源
+
+客户端和服务器之间，传递这种资源的某种表现层
+
+客户端通过四个HTTP动词，对服务端资源进行操作，实现"表现层状态转换"
+
+
+
+
+
+
+HTTP methods
+# ===================================================================================
+
+GET: retrieve data from a specified resource
+
+POST: submit data to be processed to a specified resource
+
+PUT: update a specified resource
+
+DELETE: delete a specified resource
+
+
+
+
+Endpoint路径
+# ===================================================================================
+
+路径又称终点，表示API的具体网址
+
+the URL/URI where API/service can be accessed by a cliend application
+
+
+GET:
+https://mysite.com/api/users
+
+GET:
+https://mysite.com/api/users/1
+或者
+https://mysite.com/api/users/details/1
+
+POST:
+https://mysite.com/api/users
+
+
+PUT:
+https://mysite.com/api/users/1
+或者
+https://mysite.com/api/users/update/1
+
+
+DELTE:
+https://mysite.com/api/users/1
+或者
+https://mysite.com/api/users/delete/1
+
+
+
+
+
+Authentication
+# ===================================================================================
+
+some APIs require Authentication to use their service. this could be paid or free.
+
+
+use OAuth application
+get some kind of access token and send that along with your request
+
+
+Github API: you can use without access token (Authentication), but limited requests per hour
+if you go over that, and you didn't authorise, you get an error, you can fetch the data
+
+curl -H :    OAuth token sent in a header
+curl:        OAuth token sent in as a parameter
+curl '' :    OAuth token key secret pair
+
+
+
+
+postman
+# ===================================================================================
+
+google chrome plugin
+
+try out in Github
+
+after API rate limit, you can register, get authenticated,
+github will give you a key and a secret, put them in the URL, can keep getting more data
+
+
+
+
+
+
+
+
+
