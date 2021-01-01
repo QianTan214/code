@@ -1,4 +1,515 @@
 
+*************************************************************************************
+1. R
+*************************************************************************************
+
+
+R basics
+# ===================================================================================
+
+help("log")
+?log
+args(log)
+
+data # show datasets
+
+Inf
+
+rm
+recommend save the workspace
+save
+save.image
+
+recommend suffix .rda or RData
+
+create and save a script
+
+commment in R ##
+
+
+class(a) # data type
+
+
+library(dslabs)
+data(murders) # load murders dataset
+class(murders)
+#> [1] "data.frame"
+
+str(murders) # structure
+head(murders) # first 6 rows
+
+murders$population
+
+autoc-complete
+type murders$p then hit tab key
+
+pop <- murders$population
+length(pop)
+#> [1] 51
+
+turn numeric into integer:
+as.integer()
+class(1L)
+
+
+
+factors
+# ===================================================================================
+
+
+levels(murders$region) # factor data type use levels function
+
+R stores these levels as integers and keeps a map to keep track of the labels. This is more memory efficient than storing all the characters
+
+reorder:
+we want levels of the region by the total number of murders rather than alphabetical order
+
+eg.
+region <- murders$region
+value <- murders$total
+region <- reorder(region, value, FUN = sum)
+levels(region)
+#> [1] "Northeast"     "North Central" "West"          "South"
+
+
+
+lists
+# ===================================================================================
+
+
+Data frames are a special case of lists
+you can store any combination of different types
+
+equivalent:
+record$student_id
+record[["student_id"]]
+#> [1] 1234
+
+lists without variable names
+record2 <- list("John Doe", 1234)
+
+
+If a list does not have names, you cannot extract the elements with $, 
+but you can still use the brackets method and instead of providing the variable name, you provide the list index
+
+eg. 
+record2[[1]]
+#> [1] "John Doe"
+
+
+
+Matrices
+# ===================================================================================
+
+
+same data type
+
+mat <- matrix(1:12, 4, 3) # 4 rows, 3 cols
+
+convert matrices into data frames using the function as.data.frame
+
+eg.
+as.data.frame(mat)
+#>   V1 V2 V3
+#> 1  1  5  9
+#> 2  2  6 10
+#> 3  3  7 11
+#> 4  4  8 12
+
+
+
+Vectors
+# ===================================================================================
+
+
+create vectors using the function c, which stands for concatenate
+
+eg.
+codes <- c(380, 124, 818)
+country <- c('italy', 'canada', 'egypt')
+
+
+codes <- c(italy = 380, canada = 124, egypt = 818)
+class(codes)
+names(codes)
+
+
+
+
+subsetting
+# ===================================================================================
+
+
+codes[c(1,3)]
+codes[1:2]
+
+
+
+
+Coercion
+# ===================================================================================
+
+
+x <- c(1, "canada", 3)
+class(x)
+#> [1] "character"
+
+
+x <- 1:5
+y <- as.character(x)
+
+
+x <- c("1", "b", "3")
+as.numeric(x)
+#> Warning: NAs introduced by coercion
+#> [1]  1 NA  3
+
+
+
+
+Sort
+# ===================================================================================
+
+
+sort: sorts a vector in increasing order
+
+order: returns the index that sorts input vector
+
+eg.
+x
+#> [1] 31  4 15 92 65
+order(x)
+#> [1] 2 3 1 5 4
+
+
+
+max: largest value
+which.max: the index of the largest value
+
+min
+which.min
+
+
+rank
+
+eg.
+x <- c(31, 4, 15, 92, 65)
+rank(x)
+#> [1] 3 1 2 5 4
+
+
+eg.
+
+original	sort	order	rank
+31	        4	        2	    3
+4	        15	        3	    1
+15	        31	        1	    2
+92	        65	        5	    5
+65	        92	        4	    4
+
+
+
+recycling(common error)
+if the vectors don’t match in length, we don’t get an error
+
+eg.
+x <- c(1,2,3)
+y <- c(10, 20, 30, 40, 50, 60, 70)
+x+y
+#> Warning in x + y: longer object length is not a multiple of shorter
+#> object length
+#> [1] 11 22 33 41 52 63 71
+
+
+
+
+
+Vector arithmetics
+# ===================================================================================
+
+
+In R, arithmetic operations on vectors occur element-wise
+
+
+Subsetting with logicals
+
+eg.
+ind <- murder_rate <= 0.71
+murders$state[ind]
+
+sum(ind)
+#> [1] 5
+
+
+& 
+ind <- safe & west
+
+
+which
+convert vectors of logicals into indexes
+
+eg.
+ind <- which(murders$state == "California")
+murder_rate[ind]
+#> [1] 3.37
+
+
+
+match
+match tells us which indexes of a second vector match each of the entries of a first vector
+
+eg.
+ind <- match(c("New York", "Florida", "Texas"), murders$state)
+ind
+#> [1] 33 10 44
+
+
+
+%in%
+If rather than an index we want a logical that tells us whether or not each element of a first vector is in a second, 
+we can use the function %in%
+
+eg.
+c("Boston", "Dakota", "Washington") %in% murders$state
+#> [1] FALSE FALSE  TRUE
+
+
+
+Advanced: There is a connection between match and %in% through which. To see this, 
+notice that the following two lines produce the same index (although in different order):
+
+eg.
+match(c("New York", "Florida", "Texas"), murders$state)
+#> [1] 33 10 44
+which(murders$state%in%c("New York", "Florida", "Texas"))
+#> [1] 10 33 44
+
+
+
+
+
+Basic plots
+# ===================================================================================
+
+
+with
+For a quick plot that avoids accessing variables twice, we can use the with function
+
+eg.
+with(murders, plot(population, total))
+
+
+hist
+
+eg.
+x <- with(murders, total / population * 100000)
+hist(x)
+
+
+boxplot
+
+eg.
+murders$rate <- with(murders, total / population * 100000)
+boxplot(rate~region, data = murders)
+
+
+image
+
+eg.
+x <- matrix(1:120, 12, 10)
+image(x)
+
+
+
+
+
+
+
+Programming basics
+# ===================================================================================
+
+
+
+several functions that are widely used to program in R but that we will not cover in this book. 
+These include split, cut, do.call, and Reduce, as well as the data.table package.
+
+
+
+Conditional expressions
+# ===================================================================================
+
+
+if else`
+
+eg.
+a <- 0
+
+if(a!=0){
+  print(1/a)
+} else{
+  print("No reciprocal for 0.")
+}
+#> [1] "No reciprocal for 0."
+
+
+
+ifelse
+
+eg.
+
+a <- 0
+ifelse(a > 0, 1/a, NA)
+#> [1] NA
+
+
+no_nas <- ifelse(is.na(na_example), 0, na_example)
+
+
+any()
+all()
+
+
+
+Defining functions
+# ===================================================================================
+
+
+eg.
+
+avg <- function(x){
+  s <- sum(x)
+  n <- length(x)
+  s/n
+}
+
+
+identical()
+
+identical(mean(x), avg(x))
+
+avg(1:10)
+
+ifelse(arithmetic, sum(x)/n, prod(x)^(1/n)) #  arithmetic or geometric average
+
+
+eg.
+
+avg <- function(x, arithmetic = TRUE){
+  n <- length(x)
+  ifelse(arithmetic, sum(x)/n, prod(x)^(1/n))
+}
+
+
+
+
+Namespaces
+# ===================================================================================
+
+
+two packages use the same name for two different functions
+
+both dplyr and the R-base stats package define a filter function
+
+search()
+
+stats::filter
+
+dplyr::filter
+
+Also note that if we want to use a function in a package without loading the entire package, we can use the double colon as well.
+
+
+
+
+
+For-loops
+# ===================================================================================
+
+
+although R rarely uses for loops
+
+eg.
+compute_s_n <- function(n){
+  x <- 1:n
+  sum(x)
+}
+
+
+eg.
+m <- 25
+s_n <- vector(length = m) # create an empty vector
+for(n in 1:m){
+  s_n[n] <- compute_s_n(n)
+}
+
+
+
+
+Vectorization and functionals
+# ===================================================================================
+
+
+vectorization is preferred over for-loops
+
+
+eg.
+x <- 1:10
+sqrt(x)
+#>  [1] 1.00 1.41 1.73 2.00 2.24 2.45 2.65 2.83 3.00 3.16
+y <- 1:10
+x*y
+#>  [1]   1   4   9  16  25  36  49  64  81 100
+
+
+sapply
+The function sapply permits us to perform element-wise operations on any function
+
+
+Other functionals are apply, lapply, tapply, mapply, vapply, and replicate. We mostly use sapply, apply, and replicate in this book
+
+
+
+
+The tidyverse
+# ===================================================================================
+
+
+
+the preferred unit for data storage is not the vector but the data frame
+
+installing and loading the tidyverse package
+
+dplyr package for manipulating data frames and the purrr package for working with functions
+
+tidyverse also includes a graphing package, ggplot2
+
+
+We say that a data table is in tidy format if each row represents one observation and columns represent the different variables 
+for each of these observations
+
+
+
+Manipulating data frames
+# ===================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 library() 查看安装了哪些包
 

@@ -1,0 +1,784 @@
+
+*************************************************************************************
+1. Getting started with R and RStudio
+*************************************************************************************
+
+
+R basics
+# ===================================================================================
+
+help("log")
+?log
+args(log)
+
+data # show datasets
+
+Inf
+
+rm
+recommend save the workspace
+save
+save.image
+
+recommend suffix .rda or RData
+
+create and save a script
+
+commment in R ##
+
+
+class(a) # data type
+
+
+library(dslabs)
+data(murders) # load murders dataset
+class(murders)
+#> [1] "data.frame"
+
+str(murders) # structure
+head(murders) # first 6 rows
+
+murders$population
+
+autoc-complete
+type murders$p then hit tab key
+
+pop <- murders$population
+length(pop)
+#> [1] 51
+
+turn numeric into integer:
+as.integer()
+class(1L)
+
+
+
+factors
+# ===================================================================================
+
+
+levels(murders$region) # factor data type use levels function
+
+R stores these levels as integers and keeps a map to keep track of the labels. This is more memory efficient than storing all the characters
+
+reorder:
+we want levels of the region by the total number of murders rather than alphabetical order
+
+eg.
+region <- murders$region
+value <- murders$total
+region <- reorder(region, value, FUN = sum)
+levels(region)
+#> [1] "Northeast"     "North Central" "West"          "South"
+
+
+
+lists
+# ===================================================================================
+
+
+Data frames are a special case of lists
+you can store any combination of different types
+
+equivalent:
+record$student_id
+record[["student_id"]]
+#> [1] 1234
+
+lists without variable names
+record2 <- list("John Doe", 1234)
+
+
+If a list does not have names, you cannot extract the elements with $, 
+but you can still use the brackets method and instead of providing the variable name, you provide the list index
+
+eg. 
+record2[[1]]
+#> [1] "John Doe"
+
+
+
+Matrices
+# ===================================================================================
+
+
+same data type
+
+mat <- matrix(1:12, 4, 3) # 4 rows, 3 cols
+
+convert matrices into data frames using the function as.data.frame
+
+eg.
+as.data.frame(mat)
+#>   V1 V2 V3
+#> 1  1  5  9
+#> 2  2  6 10
+#> 3  3  7 11
+#> 4  4  8 12
+
+
+
+Vectors
+# ===================================================================================
+
+
+create vectors using the function c, which stands for concatenate
+
+eg.
+codes <- c(380, 124, 818)
+country <- c('italy', 'canada', 'egypt')
+
+
+codes <- c(italy = 380, canada = 124, egypt = 818)
+class(codes)
+names(codes)
+
+
+
+
+subsetting
+# ===================================================================================
+
+
+codes[c(1,3)]
+codes[1:2]
+
+
+
+
+Coercion
+# ===================================================================================
+
+
+x <- c(1, "canada", 3)
+class(x)
+#> [1] "character"
+
+
+x <- 1:5
+y <- as.character(x)
+
+
+x <- c("1", "b", "3")
+as.numeric(x)
+#> Warning: NAs introduced by coercion
+#> [1]  1 NA  3
+
+
+
+
+Sort
+# ===================================================================================
+
+
+sort: sorts a vector in increasing order
+
+order: returns the index that sorts input vector
+
+eg.
+x
+#> [1] 31  4 15 92 65
+order(x)
+#> [1] 2 3 1 5 4
+
+
+
+max: largest value
+which.max: the index of the largest value
+
+min
+which.min
+
+
+rank
+
+eg.
+x <- c(31, 4, 15, 92, 65)
+rank(x)
+#> [1] 3 1 2 5 4
+
+
+eg.
+
+original	sort	order	rank
+31	        4	        2	    3
+4	        15	        3	    1
+15	        31	        1	    2
+92	        65	        5	    5
+65	        92	        4	    4
+
+
+
+recycling(common error)
+if the vectors don’t match in length, we don’t get an error
+
+eg.
+x <- c(1,2,3)
+y <- c(10, 20, 30, 40, 50, 60, 70)
+x+y
+#> Warning in x + y: longer object length is not a multiple of shorter
+#> object length
+#> [1] 11 22 33 41 52 63 71
+
+
+
+
+
+Vector arithmetics
+# ===================================================================================
+
+
+In R, arithmetic operations on vectors occur element-wise
+
+
+Subsetting with logicals
+
+eg.
+ind <- murder_rate <= 0.71
+murders$state[ind]
+
+sum(ind)
+#> [1] 5
+
+
+& 
+ind <- safe & west
+
+
+which
+convert vectors of logicals into indexes
+
+eg.
+ind <- which(murders$state == "California")
+murder_rate[ind]
+#> [1] 3.37
+
+
+
+match
+match tells us which indexes of a second vector match each of the entries of a first vector
+
+eg.
+ind <- match(c("New York", "Florida", "Texas"), murders$state)
+ind
+#> [1] 33 10 44
+
+
+
+%in%
+If rather than an index we want a logical that tells us whether or not each element of a first vector is in a second, 
+we can use the function %in%
+
+eg.
+c("Boston", "Dakota", "Washington") %in% murders$state
+#> [1] FALSE FALSE  TRUE
+
+
+
+Advanced: There is a connection between match and %in% through which. To see this, 
+notice that the following two lines produce the same index (although in different order):
+
+eg.
+match(c("New York", "Florida", "Texas"), murders$state)
+#> [1] 33 10 44
+which(murders$state%in%c("New York", "Florida", "Texas"))
+#> [1] 10 33 44
+
+
+
+
+
+Basic plots
+# ===================================================================================
+
+
+with
+For a quick plot that avoids accessing variables twice, we can use the with function
+
+eg.
+with(murders, plot(population, total))
+
+
+hist
+
+eg.
+x <- with(murders, total / population * 100000)
+hist(x)
+
+
+boxplot
+
+eg.
+murders$rate <- with(murders, total / population * 100000)
+boxplot(rate~region, data = murders)
+
+
+image
+
+eg.
+x <- matrix(1:120, 12, 10)
+image(x)
+
+
+
+
+
+
+
+Programming basics
+# ===================================================================================
+
+
+
+several functions that are widely used to program in R but that we will not cover in this book. 
+These include split, cut, do.call, and Reduce, as well as the data.table package.
+
+
+
+Conditional expressions
+# ===================================================================================
+
+
+if else`
+
+eg.
+a <- 0
+
+if(a!=0){
+  print(1/a)
+} else{
+  print("No reciprocal for 0.")
+}
+#> [1] "No reciprocal for 0."
+
+
+
+ifelse
+
+eg.
+
+a <- 0
+ifelse(a > 0, 1/a, NA)
+#> [1] NA
+
+
+no_nas <- ifelse(is.na(na_example), 0, na_example)
+
+
+any()
+all()
+
+
+
+Defining functions
+# ===================================================================================
+
+
+eg.
+
+avg <- function(x){
+  s <- sum(x)
+  n <- length(x)
+  s/n
+}
+
+
+identical()
+
+identical(mean(x), avg(x))
+
+avg(1:10)
+
+ifelse(arithmetic, sum(x)/n, prod(x)^(1/n)) #  arithmetic or geometric average
+
+
+eg.
+
+avg <- function(x, arithmetic = TRUE){
+  n <- length(x)
+  ifelse(arithmetic, sum(x)/n, prod(x)^(1/n))
+}
+
+
+
+
+Namespaces
+# ===================================================================================
+
+
+two packages use the same name for two different functions
+
+both dplyr and the R-base stats package define a filter function
+
+search()
+
+stats::filter
+
+dplyr::filter
+
+Also note that if we want to use a function in a package without loading the entire package, we can use the double colon as well.
+
+
+
+
+
+For-loops
+# ===================================================================================
+
+
+although R rarely uses for loops
+
+eg.
+compute_s_n <- function(n){
+  x <- 1:n
+  sum(x)
+}
+
+
+eg.
+m <- 25
+s_n <- vector(length = m) # create an empty vector
+for(n in 1:m){
+  s_n[n] <- compute_s_n(n)
+}
+
+
+
+
+Vectorization and functionals
+# ===================================================================================
+
+
+vectorization is preferred over for-loops
+
+
+eg.
+x <- 1:10
+sqrt(x)
+#>  [1] 1.00 1.41 1.73 2.00 2.24 2.45 2.65 2.83 3.00 3.16
+y <- 1:10
+x*y
+#>  [1]   1   4   9  16  25  36  49  64  81 100
+
+
+sapply
+The function sapply permits us to perform element-wise operations on any function
+
+
+Other functionals are apply, lapply, tapply, mapply, vapply, and replicate. We mostly use sapply, apply, and replicate in this book
+
+
+
+
+The tidyverse
+# ===================================================================================
+
+
+
+the preferred unit for data storage is not the vector but the data frame
+
+installing and loading the tidyverse package
+
+dplyr package for manipulating data frames and the purrr package for working with functions
+
+tidyverse also includes a graphing package, ggplot2
+
+
+We say that a data table is in tidy format if each row represents one observation and columns represent the different variables 
+for each of these observations
+
+
+
+Manipulating data frames
+# ===================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+install.packages("dslabs")  # to install a single package
+install.packages(c("tidyverse", "dslabs")） # to install two packages at the same time
+installed.packages() # to see the list of all installed packages
+library(tidyverse)
+
+
+Rproj file 
+
+Git is most effectively used with Unix, but it can also interface with RStudio.
+
+Connect to RStudio: global options > Git/SVM, enter the path to git executables
+
+To avoid typing our GitHub password every time, we create a SSH/RSA key automatically through RStudio with the create RSA key button.
+
+
+
+
+Absolute path vs. relative path
+# ===================================================================================
+
+
+A full path specifies the location of a file from the root directory. It is independent of your present directory, and must begin with either a “/” or a “~”. In this example, the full path to our “project-1” file is: 
+
+/home/projects/project-1
+
+A relative path is the path relative to your present working directory. If our present working directory is the “projects” folder, then the relative path to our “project-1” file is simply: 
+
+project-1
+
+
+
+More path examples
+1.     Your current working directory is ~/projects and you want to move to the figs directory in the project-1 folder
+
+Solution 2: cd ~/projects/project-1/figs (absolute)
+Solution 2:  cd project-1/figs (relative)
+
+2.     Your current working directory is ~/projects and you want to move to the reports folder in the docs directory
+
+Solution 1: cd ~/dos/reports (absolute)
+Solution 2: cd ../docs/reports (relative)
+
+3.     Your current working directory is ~/projects/project-1/figs and you want to move to the project-2 folder in the projects directory.
+
+Solution 1: cd ~/projects/project-2 (absolute)
+Solution 2: cd ../../project-2 (relative)
+
+
+echo "hello world"
+
+
+
+Note for Windows Users: The typical R installation will make your Documents directory your home directory in R. This will likely be different from your home directory in Git Bash. 
+Generally, when we discuss home directories, we refer to the Unix home directory which for Windows, in this book, is the Git Bash Unix directory.
+
+
+Unix Commands
+# ===================================================================================
+
+
+ls #list dir content
+mkdir folder_name #create directory called "folder_name"
+rmdir folder_name  #remove an empty directory as long as it is empty
+rm -r folder_name  #remove dir that is not empty, "r" stands for recursive
+cd: change dir
+../ # two dots represents parent dir
+. # single dot represents current workingdir 
+cd ~/projects # concatenate with forward slashes
+cd ../.. # change to two parent layer beyond
+cd -  # whatever dir you were before
+cd  # return to the home dir
+
+mv path-to-file path-to-destination-directory
+rm filename-1 filename-2 filename-3
+
+
+less allows you to quickly look at the content of a file
+Use q to exit the less page
+use the arrows to navigate in the less page
+
+less cv.tex
+
+
+
+
+
+
+
+In a project, we prefer using relative paths (path relative to the default working directory) instead of the full path so that code can run smoothly on other individual's computers.
+It is good practice to write a README.txt file to introduce the file structure to facilitate collaboration and for your future reference.
+
+
+########### In terminal ###########
+cd ~    # move to home directory
+mkdir projects    # make a new directory called projects
+cd projects    # move to ~/projects directory
+mkdir murders    # make new directory called murders inside of projects
+cd murders    # move to ~/projects/murders/
+mkdir data rda    # make two new directories, one is data the other is rda folder
+ls    # to check if we indeed have one data folder and one rda folder
+pwd    # check the current working directory
+mkdir figs    # make a directory called figs to store figures
+########## In RStudio ########
+# pick existing directory as new project
+getwd()    # to confirm current working directory
+save()    # save into .rda file, .RData is also fine but less preferred
+ggsave("figs/barplot.png")    # save a plot generated by ggplot2 to a dir called "figs"
+
+
+pwd: print working directory
+
+The mv command can move a file and change the name of a file.
+
+
+
+
+
+Git
+# ===================================================================================
+
+
+A pull request allows anyone to suggest changes to your code.
+
+
+Recap: there are four stages: working directory, staging area, local repository, and upstream repository
+Clone an existing upstream repository (copy repo url from clone button, and type "git clone <url>"), and all three local stages are the same as upstream remote.
+The working directory is the same as the working directory in Rstudio. When we edit files we only change the files in this place.
+git status: tells how the files in the working directory are related to the files in other stages
+edits in the staging area are not tracked by the version control system by default - we add a file to the staging area by git add command
+git commit: to commit files from the staging area to local repository, we need to add a message stating what we are doing by git commit -m "something"
+git log: keeps track of all the changes we have made to the local repository
+git push: allows moving from the local repository to upstream repository, only if you have the permission (e.g. if it is yours)
+git fetch: update local repository to  be like the upstream repository, from upstream to local
+git merge: make the updated local sync with the working directory and staging area
+To change everything in one shot (from upstream to working dir), use git pull (equivalent to combining git fetch + git merge)
+
+
+
+pwd
+mkdir git-example
+cd git-example
+git clone https://github.com/rairizarry/murders.git
+cd murders
+ls
+git status
+echo "test" >> new-file.txt
+echo "temporary" >> tmp.txt
+git add new-file.txt
+git status
+git commit -m "adding a new file" 
+git status
+echo "adding a second line" >> new-file.txt
+git commit -m "minor change to new-file" new-file.txt
+git status
+git add
+git log new-file.txt
+git push
+git fetch
+git merge
+
+
+Recap: two ways to get started, one is cloning an existing repository, the other is initializing our own
+Make a local git repository: On the local machine, in the project directory, use git init. Now git starts tracking everything in the local repo.
+
+
+
+
+
+Advanced Unix: Arguments
+# ===================================================================================
+
+
+Arguments typically are defined using a dash (-) or two dashes (--) followed by a letter of a word.
+r: recursive. For example, rm -r <directory-name>: remove all files, subdirectories, files in subdirectories, subdirectories in subdirectories, etc.
+Combine arguments: rm -rf directory-name
+ls -a: Shows all files in the directories including hidden files (e.g. .git file when initializing using git init) (a for all).
+ls -l: Returns more information about the files (i.e. l for long).
+ls -t: Shows files in chronological order.
+ls -r: Reverses the order of how files are shown.
+ls -lart: Shows more information for all files in reverse chronological order.
+
+
+
+Getting Help: Use man + command name to get help (e.g. man ls). Note that it is not available for Git Bash. For Git Bash, you can use command -- help (e.g. ls --help).
+Pipes: Pipes the results of a command to the command after the pipe. Similar to the pipe %>% in R. For example, man ls | less (and its equivalent in Git Bash: ls --help | less). 
+Also useful when listing files with many files (e.g ls -lart | less).
+
+
+
+* means any number of any combination of characters. Specifically, to list all html files: ls *.html and to remove all html files in a directory: rm *.html.
+? means any single character. For example, to erase all files in the  form file-001.html with the numbers going from 1 to 999: rm file-???.html.
+Combined wild cards: rm file-001.* to remove all files of the name file-001 regardless of suffix.
+Warning: Combining rm with the * wild card can be dangerous. There are combinations of these commands that will erase your entire file system without asking you for confirmation. 
+Make sure you understand how it works before using this wild card with the rm command.
+
+
+
+In Unix, variables are distinguished from other entities by adding a $ in front. For example, the home directory is stored in $HOME.
+See home directory: echo $HOME
+See them all: env   
+See what shell is being used: echo $SHELL (most common shell is bash)
+Change environmental variables: (Don’t actually run this command though!) export PATH = /usr/bin/
+
+
+
+
+
+
+
+
+
+
+
+# ===================================================================================
+
+
+beads <- rep(c("red", "blue"), times = c(2,3))
+beads
+#> [1] "red"  "red"  "blue" "blue" "blue"
+
+
+sample(beads, 1) # blue
+
+
+Monte Carlo simulations for categorical data
+
+This line of code produces one random outcome. We want to repeat this experiment an infinite number of times, but it is impossible to repeat forever. 
+Instead, we repeat the experiment a large enough number of times to make the results practically equivalent to repeating forever. This is an example of a Monte Carlo simulation.
+
+
+
+replicate
+# ===================================================================================
+
+
+B <- 10000
+events <- replicate(B, sample(beads, 1))
+
+
+
+
+tab <- table(events)
+tab
+#> events
+#> blue  red 
+#> 5999 4001
+
+prop.table(tab)
+#> events
+#> blue  red 
+#>  0.6  0.4
+
+
+Setting the random seed
+# ===================================================================================
+
+set.seed(1986)
+
+Above we set it to 1986. We want to avoid using the same seed everytime. A popular way to pick the seed is the year - month - day. 
+For example, we picked 1986 on December 20, 2018:  2018−12−20=1986
+
+
+?set.seed
+
+
+events <- sample(beads, B, replace = TRUE)
+prop.table(table(events))
+#> events
+#>  blue   red 
+#> 0.602 0.398
+
+
+
+
+
+
+
