@@ -492,6 +492,1403 @@ for each of these observations
 Manipulating data frames
 # ===================================================================================
 
+For the tidyverse packages to be optimally used, data need to be reshaped into tidy format
+
+mutate: adding a column
+
+eg.
+library(dslabs)
+data("murders")
+murders <- mutate(murders, rate = total / population * 100000)
+
+
+Although we have overwritten the original murders object, this does not change the object that loaded with data(murders). 
+If we load the murders data again, the original will overwrite our mutated version.
+
+filter
+
+eg.
+filter(murders, rate <= 0.71)
+
+select
+eg.
+new_table <- select(murders, state, region, rate)
+filter(new_table, rate <= 0.71)
+
+
+
+pipe %>%
+# ===================================================================================
+
+
+eg.
+murders %>% select(state, region, rate) %>% filter(rate <= 0.71)
+
+eg.
+16 %>% sqrt() %>% log2()
+
+pipe %>%
+In general, the pipe sends the result of the left side of the pipe to be the first argument of the function on the right side of the pipe
+Therefore, we no longer need to specify the required first argument
+
+
+
+
+Summarize
+# ===================================================================================
+
+
+summarize
+
+eg. # a new summarised table
+s <- heights %>% 
+  filter(sex == "Female") %>%
+  summarize(average = mean(height), standard_deviation = sd(height))
+s
+#>   average standard_deviation
+#> 1    64.9               3.76
+
+
+eg.
+heights %>% 
+  filter(sex == "Female") %>%
+  summarize(median = median(height), minimum = min(height), 
+            maximum = max(height))
+#>   median minimum maximum
+#> 1     65      51      79
+
+
+quantile(x, c(0,0.5,1)) returns the min (0th percentile), median (50th percentile), and max (100th percentile)
+
+
+eg. error because with function summarize, we can only call functions that return a single value.
+heights %>% 
+  filter(sex == "Female") %>%
+  summarize(range = quantile(height, c(0, 0.5, 1)))
+
+
+
+
+pull
+# ===================================================================================
+
+
+summarize always returns a data frame
+
+pull: when a data object is piped that object and its columns 
+can be accessed using the pull function
+
+eg.
+us_murder_rate %>% pull(rate)
+#> [1] 3.03
+
+equivalent:
+us_murder_rate$rate
+
+
+group_by
+# ===================================================================================
+
+
+first split data into groups and then summarise each group
+
+eg.
+heights %>% 
+  group_by(sex) %>%
+  summarize(average = mean(height), standard_deviation = sd(height))
+
+
+
+
+arrange 
+# ===================================================================================
+
+
+arrange: order the entire table
+we decide which column to sort by
+
+eg. order the states by population size
+murders %>% arrange(population) %>% head()
+
+eg.
+murders %>% arrange(desc(rate)) # in descending order
+
+
+
+
+nested Sorting
+# ===================================================================================
+
+eg.
+murders %>% arrange(region, rate) %>% head() # nested sorting
+
+
+
+
+top_n
+# ===================================================================================
+
+
+show number of rows
+
+eg.
+murders %>% top_n(5, rate)
+
+if the third argument left blank, top_n filters by the last column
+
+
+
+
+dot operator .
+# ===================================================================================
+
+
+access the rate vector if the pull function not available
+
+eg.
+rates <- filter(murders, region == "South") %>% 
+  mutate(rate = total / population * 10^5) %>% 
+  .$rate
+median(rates)
+#> [1] 3.4
+
+
+
+The purrr package
+# ===================================================================================
+
+similar to sapply
+
+eg.
+compute_s_n <- function(n){
+  x <- 1:n
+  sum(x)
+}
+n <- 1:25
+s_n <- sapply(n, compute_s_n)
+
+
+
+difference between sapply and purrr package:
+
+sapply can return several different object types
+
+purrr functions return objects of a specified type 
+or return an error if this is not possible.
+
+map returns a list
+
+eg.
+library(purrr)
+s_n <- map(n, compute_s_n)
+class(s_n)
+#> [1] "list"
+
+
+map_dbl: always returns a vector of numeric values
+
+eg.
+s_n <- map_dbl(n, compute_s_n)
+class(s_n)
+#> [1] "numeric"
+
+
+map_df: always returns a tibble data frame
+
+
+
+
+case_when
+# ===================================================================================
+
+case_when can output any values
+ifelse can only output True and False
+
+eg.
+x <- c(-2, -1, 0, 1, 2)
+case_when(x < 0 ~ "Negative", 
+          x > 0 ~ "Positive", 
+          TRUE  ~ "Zero")
+#> [1] "Negative" "Negative" "Zero"     "Positive" "Positive"
+
+
+eg.
+murders %>% 
+  mutate(group = case_when(
+    abb %in% c("ME", "NH", "VT", "MA", "RI", "CT") ~ "New England",
+    abb %in% c("WA", "OR", "CA") ~ "West Coast",
+    region == "South" ~ "South",
+    TRUE ~ "Other")) %>%
+  group_by(group) %>%
+  summarize(rate = sum(total) / sum(population) * 10^5) 
+#> `summarise()` ungrouping output (override with `.groups` argument)
+#> # A tibble: 4 x 2
+#>   group        rate
+#>   <chr>       <dbl>
+#> 1 New England  1.72
+#> 2 Other        2.71
+#> 3 South        3.63
+#> 4 West Coast   2.90
+
+
+
+between
+# ===================================================================================
+
+x >= a & x <= b
+
+equivalent:
+between(x, a, b)
+
+
+
+import data
+# ===================================================================================
+
+check notes online
+
+
+
+
+
+
+
+
+
+*************************************************************************************
+2. Data Science: Data Visualisation
+*************************************************************************************
+
+ggplot2 
+
+main three components:
+data, geometry, aesthetic mapping
+
+geom_X where X is the name of the geometry. eg. geom_point, 
+geom_bar, and geom_histogram
+
+
+
+
+
+Aesthetic mappings
+# ===================================================================================
+
+whereas mappings use data from specific observations and need to be inside aes()
+
+operations we want to affect all the points the same way 
+do not need to be included inside aes
+
+
+eg.
+murders %>% ggplot() + 
+  geom_point(aes(x = population/10^6, y = total))
+
+eg.
+p_test <- p + geom_text(aes(population/10^6, total, label = abb))
+
+
+
+
+
+Global vs local aesthetic mappings
+# ===================================================================================
+
+define a mapping in ggplot, all the geometries that are added as layers 
+will default to this mapping
+
+eg.
+p <- murders %>% ggplot(aes(population/10^6, total, label = abb))
+
+
+we can override the global mapping by defining a new mapping within each layer
+These local definitions override the global
+
+eg.
+p + geom_point(size = 3) +  
+  geom_text(aes(x = 10, y = 800, label = "Hello there!"))
+
+
+eg. log scale
+p + geom_point(size = 3) +  
+  geom_text(nudge_x = 0.05) + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") 
+
+eg.
+scale_x_log10() + scale_y_log10() 
+
+
+
+
+
+Labels and titles
+# ===================================================================================
+
+xlab("Populations in millions (log scale)") + 
+ylab("Total number of murders (log scale)") +
+ggtitle("US Gun Murders in 2010")
+
+
+p + geom_point(size = 3, color ="blue")
+
+
+A nice default behavior of ggplot2 is that if we assign a categorical variable to color, 
+it automatically assigns a different color to each category and also adds a legend.
+
+p + geom_point(aes(col=region), size = 3)
+
+To avoid automatically adding legend we set the geom_point argument show.legend = FALSE
+
+
+
+
+
+Annotation, shapes, and adjustments
+# ===================================================================================
+
+geom_abline function. ggplot2 uses ab in the name to remind us of intercept (a) and slope (b). 
+
+eg.
+p + geom_point(aes(col=region), size = 3) + geom_abline(intercept = log10(r))
+
+
+
+
+
+Add-on packages
+# ===================================================================================
+
+eg.
+library(ggthemes)
+p + theme_economist()
+
+
+The add-on package ggrepel includes a geometry that adds labels while ensuring that they don’t fall on top of each other. 
+We simply change geom_text with geom_text_repel.
+
+
+
+
+
+Putting it all together
+# ===================================================================================
+
+eg.
+library(ggthemes)
+library(ggrepel)
+
+r <- murders %>% 
+  summarize(rate = sum(total) /  sum(population) * 10^6) %>%
+  pull(rate)
+
+murders %>% ggplot(aes(population/10^6, total, label = abb)) +   
+  geom_abline(intercept = log10(r), lty = 2, color = "darkgrey") +
+  geom_point(aes(col=region), size = 3) +
+  geom_text_repel() + 
+  scale_x_log10() +
+  scale_y_log10() +
+  xlab("Populations in millions (log scale)") + 
+  ylab("Total number of murders (log scale)") +
+  ggtitle("US Gun Murders in 2010") + 
+  scale_color_discrete(name = "Region") +
+  theme_economist()
+
+
+
+
+qplot
+# ===================================================================================
+
+qplot: make a quick plot
+
+
+eg.
+qplot(x, y)
+
+
+
+
+gridExtra 
+# ===================================================================================
+
+gridExtra: graph plots next to each other
+
+eg.
+
+library(gridExtra)
+p1 <- qplot(x)
+p2 <- qplot(x,y)
+grid.arrange(p1, p2, ncol = 2)
+
+
+
+Histograms
+# ===================================================================================
+
+histogram similar to barplot
+
+but the histogram x-axis is numerical, not categorical
+
+
+
+
+
+
+Smoothed density
+# ===================================================================================
+
+select degree of smoothness with care
+
+
+
+
+
+
+The normal distribution
+# ===================================================================================
+
+mean: m <- sum(x) / length(x)
+sd: s <- sqrt(sum((x-mu)^2) / length(x))
+
+
+
+
+Standard units
+# ===================================================================================
+
+z <- scale(x)
+
+how many men are within 2 SDs from the average
+
+eg.
+mean(abs(z) < 2)
+#> [1] 0.95
+
+
+
+
+Quantile-quantile plots
+# ===================================================================================
+
+QQ-plot
+
+eg.
+pnorm(-1.96)
+#> [1] 0.025
+
+
+eg. inverse function
+
+qnorm(0.975)
+#> [1] 1.96
+
+Note that these are for standard normal distribution by default (mean = 0, sd = 1), 
+but we can also define these for any normal distribution
+
+eg.
+qnorm(0.975, mean = 5, sd = 2)
+#> [1] 8.92
+
+eg.
+mean(x <= 69.5)
+#> [1] 0.515
+
+So about 50% are shorter or equal to 69 inches
+This implies that if  p = 0.50 then q = 69.5
+
+
+eg. ???
+sample_quantiles <- quantile(z, p)
+theoretical_quantiles <- qnorm(p) 
+qplot(theoretical_quantiles, sample_quantiles) + geom_abline()
+
+
+in practice it is easier to use the ggplot2
+
+eg.
+heights %>% filter(sex == "Male") %>%
+  ggplot(aes(sample = scale(height))) + 
+  geom_qq() +
+  geom_abline()
+
+
+
+
+
+Percentiles
+# ===================================================================================
+
+median: percentile 50 th
+
+For normal distribution median and average are the same
+
+
+
+Boxplots and stratification
+# ===================================================================================
+
+没什么内容
+
+
+
+
+ggplot2 geometries
+# ===================================================================================
+
+如geom_bar等
+
+
+
+Barplots
+# ===================================================================================
+
+eg. 
+murders %>% ggplot(aes(region)) + geom_bar()
+
+eg.
+data(murders)
+tab <- murders %>% 
+  count(region) %>% 
+  mutate(proportion = n/sum(n))
+tab
+#>          region  n proportion
+#> 1     Northeast  9      0.176
+#> 2         South 17      0.333
+#> 3 North Central 12      0.235
+#> 4          West 13      0.255
+
+
+eg.
+tab %>% ggplot(aes(region, proportion)) + geom_bar(stat = "identity")
+
+
+
+
+
+
+Histograms
+# ===================================================================================
+
+eg.
+heights %>% 
+  filter(sex == "Female") %>% 
+  ggplot(aes(height)) + 
+  geom_histogram()
+
+eg.
+geom_histogram(binwidth = 1, fill = "blue", col = "black")
+
+
+
+
+Density plots
+# ===================================================================================
+
+eg.
+heights %>% 
+  filter(sex == "Female") %>%
+  ggplot(aes(height)) +
+  geom_density()
+
+eg. adjust bandwidth to be twice
+geom_density(fill="blue", adjust = 2)
+
+
+
+
+
+QQ-plots
+# ===================================================================================
+
+eg.
+heights %>% filter(sex=="Male") %>%
+  ggplot(aes(sample = height)) +
+  geom_qq()
+
+
+eg.
+params <- heights %>% filter(sex=="Male") %>%
+  summarize(mean = mean(height), sd = sd(height))
+
+heights %>% filter(sex=="Male") %>%
+  ggplot(aes(sample = height)) +
+  geom_qq(dparams = params) +
+  geom_abline()
+
+
+Another option here is to scale the data first 
+and then make a qqplot against the standard normal.
+
+eg.
+heights %>% 
+  filter(sex=="Male") %>%
+  ggplot(aes(sample = scale(height))) + 
+  geom_qq() +
+  geom_abline()
+
+
+
+
+
+Images
+# ===================================================================================
+
+eg.
+x <- expand.grid(x = 1:12, y = 1:10) %>% 
+  mutate(z = 1:120) 
+
+eg.
+x %>% ggplot(aes(x, y, fill = z)) + 
+  geom_raster() + 
+  scale_fill_gradientn(colors =  terrain.colors(10))
+
+
+
+Quick plots
+# ===================================================================================
+
+qplot permits us to make a plot with a short snippet of code
+
+eg.
+qplot(x)
+
+eg.
+qplot(sample = scale(x)) + geom_abline()
+
+
+Note that in the code below we are using the data argument. 
+Because the data frame is not the first argument in qplot, 
+we have to use the dot operator.
+
+eg.
+heights %>% qplot(sex, height, data = .)
+
+
+convert the plot above to a boxplot, use following code:
+
+eg.
+heights %>% qplot(sex, height, data = ., geom = "boxplot")
+
+
+use the geom argument to generate a density plot instead of a histogram:
+
+eg.
+qplot(x, geom = "density")
+
+
+eg.
+qplot(x, bins=15, color = I("black"), xlab = "Population")
+# the function I is used in R to say “keep it as it is”
+
+
+
+
+
+Hans Rosling’s quiz
+# ===================================================================================
+
+eg.
+gapminder %>% 
+  filter(year == 2015 & country %in% c("Sri Lanka","Turkey")) %>% 
+  select(country, infant_mortality)
+#>     country infant_mortality
+#> 1 Sri Lanka              8.4
+#> 2    Turkey             11.6
+
+
+
+eg. use colour to represent continent
+filter(gapminder, year == 1962) %>%
+  ggplot(aes(fertility, life_expectancy, color = continent)) +
+  geom_point() 
+
+
+
+
+
+Faceting
+# ===================================================================================
+
+facet：stratify the data by some variable and make the same plot for each strata
+
+facet_grid
+facet by up to two variables
+
+facet function expects the row and column variables to be separated by a ~
+
+. means we are not using one of the variables
+
+eg.
+filter(gapminder, year%in%c(1962, 2012)) %>%
+  ggplot(aes(fertility, life_expectancy, col = continent)) +
+  geom_point() +
+  facet_grid(. ~ year)
+
+
+
+
+facet_wrap
+# ===================================================================================
+
+we  want to use multiple rows and columns. 
+
+facet_wrap permits us to do this by automatically wrapping the series of plots 
+so that each display has viewable dimensions
+
+eg.
+years <- c(1962, 1980, 1990, 2000, 2012)
+continents <- c("Europe", "Asia")
+gapminder %>% 
+  filter(year %in% years & continent %in% continents) %>%
+  ggplot( aes(fertility, life_expectancy, col = continent)) +
+  geom_point() +
+  facet_wrap(~year) 
+
+
+
+
+
+
+Fixed scales for better comparisons
+# ===================================================================================
+
+eg.
+filter(gapminder, year%in%c(1962, 2012)) %>%
+  ggplot(aes(fertility, life_expectancy, col = continent)) +
+  geom_point() +
+  facet_wrap(. ~ year, scales = "free")
+
+
+
+
+
+Time series plots
+# ===================================================================================
+
+geom_line
+
+eg.
+gapminder %>% 
+  filter(country == "United States") %>% 
+  ggplot(aes(year, fertility)) +
+  geom_line()
+
+
+A useful effect of using color argument is that the data is automatically grouped
+
+eg.
+countries <- c("South Korea","Germany")
+
+gapminder %>% filter(country %in% countries & !is.na(fertility)) %>% 
+  ggplot(aes(year,fertility, col = country)) +
+  geom_line()
+
+
+
+
+
+Labels instead of legends
+# ===================================================================================
+
+eg.
+labels <- data.frame(country = countries, x = c(1975,1965), y = c(60,72))
+
+gapminder %>% 
+  filter(country %in% countries) %>% 
+  ggplot(aes(year, life_expectancy, col = country)) +
+  geom_line() +
+  geom_text(data = labels, aes(x, y, label = country), size = 5) +
+  theme(legend.position = "none")
+
+
+
+
+
+Log transformation
+# ===================================================================================
+
+eg.
+gapminder %>% 
+  filter(year == past_year & !is.na(gdp)) %>%
+  ggplot(aes(log2(dollars_per_day))) + 
+  geom_histogram(binwidth = 1, color = "black")
+
+
+scale_x_continuous(trans = "log2")
+
+trans argument: sqrt, logit, reverse
+
+
+
+
+
+multimodal distributions
+# ===================================================================================
+
+mode of a distribution: value with the highest frequency
+
+
+
+
+
+
+Comparing multiple distributions with boxplots and ridge plots
+# ===================================================================================
+
+eg.
+gapminder <- gapminder %>% 
+  mutate(group = case_when(
+    region %in% c("Western Europe", "Northern Europe","Southern Europe", 
+                    "Northern America", 
+                  "Australia and New Zealand") ~ "West",
+    region %in% c("Eastern Asia", "South-Eastern Asia") ~ "East Asia",
+    region %in% c("Caribbean", "Central America", 
+                  "South America") ~ "Latin America",
+    continent == "Africa" & 
+      region != "Northern Africa" ~ "Sub-Saharan",
+    TRUE ~ "Others"))
+
+
+
+turn this group variable into a factor to control the order of the levels
+
+eg.
+gapminder <- gapminder %>% 
+  mutate(group = factor(group, levels = c("Others", "Latin America", 
+                                          "East Asia", "Sub-Saharan",
+                                          "West")))
+
+
+
+turn the group labels vertical
+
+eg.
+theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+show data in boxplot
+
+eg.
+p + geom_point(alpha = 0.5)
+
+
+
+
+
+
+ridge plots
+# ===================================================================================
+
+ridge plots: stacked smooth densities or histograms
+
+ggridges package
+
+eg.
+library(ggridges)
+p <- gapminder %>% 
+  filter(year == past_year & !is.na(dollars_per_day)) %>%
+  ggplot(aes(dollars_per_day, group)) + 
+  scale_x_continuous(trans = "log2") 
+p  + geom_density_ridges() 
+
+
+A useful geom_density_ridges parameter is scale, 
+which lets you determine the amount of overlap, 
+with scale = 1 meaning no overlap 
+and larger values resulting in more overlap.
+
+
+If the number of data points is small enough, we can add them to the ridge plot
+
+eg.
+p + geom_density_ridges(jittered_points = TRUE)
+
+
+rug representation of the data
+
+eg.
+p + geom_density_ridges(jittered_points = TRUE, 
+                        position = position_points_jitter(height = 0),
+                        point_shape = '|', point_size = 3, 
+                        point_alpha = 1, alpha = 0.7)
+
+
+
+
+
+intersect function
+
+eg.
+country_list_1 <- gapminder %>% 
+  filter(year == past_year & !is.na(dollars_per_day)) %>% 
+  pull(country)
+
+country_list_2 <- gapminder %>% 
+  filter(year == present_year & !is.na(dollars_per_day)) %>% 
+  pull(country)
+      
+country_list <- intersect(country_list_1, country_list_2)
+
+
+eg.
+gapminder %>% 
+  filter(year %in% years & country %in% country_list) %>%
+  ggplot(aes(group, dollars_per_day)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_y_continuous(trans = "log2") +
+  xlab("") +
+  facet_grid(. ~ year)
+
+
+
+note: year is a number, turn it into a factor since ggplot2 automatically 
+assigns a color to each category of a factor.
+
+eg.
+mutate(year = factor(year))
+
+
+eg. access variables by surrounding the name with two dots
+aes(x = dollars_per_day, y = ..count..)
+
+
+eg.
+p <- gapminder %>% 
+  filter(year %in% years & country %in% country_list) %>%
+  mutate(group = ifelse(group == "West", "West", "Developing")) %>%
+  ggplot(aes(dollars_per_day, y = ..count.., fill = group)) +
+  scale_x_continuous(trans = "log2", limit = c(0.125, 300))
+
+p + geom_density(alpha = 0.2) + 
+  facet_grid(year ~ .)
+
+
+eg. bw argument densities to be smoother
+p + geom_density(alpha = 0.2, bw = 0.75) + facet_grid(year ~ .)
+
+
+eg. stacking the densities on top of each other
+
+eg.
+gapminder %>% 
+    filter(year %in% years & country %in% country_list) %>%
+  group_by(year) %>%
+  mutate(weight = population/sum(population)*2) %>%
+  ungroup() %>%
+  ggplot(aes(dollars_per_day, fill = group)) +
+  scale_x_continuous(trans = "log2", limit = c(0.125, 300)) + 
+  geom_density(alpha = 0.2, bw = 0.75, position = "stack") + 
+  facet_grid(year ~ .) 
+
+
+Weighted densities
+We can weight the smooth densities using the weight mapping argument
+
+
+
+
+
+
+The ecological fallacy and importance of showing the data
+# ===================================================================================
+
+logistic or logit transformation
+log(p/(1-p))
+
+ecological fallacy:
+occurs when inferences about the nature of individuals are deduced 
+from inferences about the group to which those individuals belong
+
+
+
+
+
+Data visualization principles
+# ===================================================================================
+
+coord_flip()
+
+reorder function
+
+eg.
+heights %>% 
+  ggplot(aes(sex, height)) +
+  geom_jitter(width = 0.1, alpha = 0.2) 
+
+
+Align plots vertically to see horizontal changes and 
+horizontally to see vertical changes
+
+eg.
+heights %>% 
+  ggplot(aes(height, ..density..)) +
+  geom_histogram(binwidth = 1, color="black") +
+  facet_grid(sex~.)
+
+
+
+eg.
+west <- c("Western Europe","Northern Europe","Southern Europe",
+          "Northern America","Australia and New Zealand")
+
+dat <- gapminder %>% 
+  filter(year%in% c(2010, 2015) & region %in% west & 
+           !is.na(life_expectancy) & population > 10^7) 
+
+dat %>%
+  mutate(location = ifelse(year == 2010, 1, 2), 
+         location = ifelse(year == 2015 & 
+                             country %in% c("United Kingdom", "Portugal"),
+                           location+0.22, location),
+         hjust = ifelse(year == 2010, 1, 0)) %>%
+  mutate(year = as.factor(year)) %>%
+  ggplot(aes(year, life_expectancy, group = country)) +
+  geom_line(aes(color = country), show.legend = FALSE) +
+  geom_text(aes(x = location, label = country, hjust = hjust), 
+            show.legend = FALSE) +
+  xlab("") + ylab("Life Expectancy")
+
+
+
+
+
+Bland-Altman plot
+# ===================================================================================
+
+eg.
+library(ggrepel)
+dat %>% 
+  mutate(year = paste0("life_expectancy_", year)) %>%
+  select(country, year, life_expectancy) %>% 
+  spread(year, life_expectancy) %>% 
+  mutate(average = (life_expectancy_2015 + life_expectancy_2010)/2,
+         difference = life_expectancy_2015 - life_expectancy_2010) %>%
+  ggplot(aes(average, difference, label = country)) + 
+  geom_point() +
+  geom_text_repel() +
+  geom_abline(lty = 2) +
+  xlab("Average of 2010 and 2015") + 
+  ylab("Difference between 2015 and 2010")
+
+
+
+
+
+Encoding a third variable
+# ===================================================================================
+
+
+shape argument
+
+sequential and diverging
+
+Sequential colors are suited for data that goes from high to low
+Diverging colors are used to represent values that diverge from a center
+
+eg.
+library(RColorBrewer)
+display.brewer.all(type="seq")
+
+eg.
+library(RColorBrewer)
+display.brewer.all(type="div")
+
+An example of when we would use a divergent pattern would be 
+if we were to show height in standard deviations away from the average
+
+
+
+
+
+Case study: vaccines and infectious diseases
+# ===================================================================================
+
+eg.
+geom_vline(xintercept=1963, col = "blue")
+
+
+eg.
+dat %>% ggplot(aes(year, state, fill = rate)) +
+  geom_tile(color = "grey50") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradientn(colors = brewer.pal(9, "Reds"), trans = "sqrt") +
+  geom_vline(xintercept=1963, col = "blue") +
+  theme_minimal() +  
+  theme(panel.grid = element_blank(), 
+        legend.position="bottom", 
+        text = element_text(size = 8)) +
+  ggtitle(the_disease) + 
+  ylab("") + xlab("")
+
+square root transformation is to avoid having the really high counts dominate the plot
+
+
+
+eg.
+dat %>% 
+  filter(!is.na(rate)) %>%
+    ggplot() +
+  geom_line(aes(year, rate, group = state),  color = "grey50", 
+            show.legend = FALSE, alpha = 0.2, size = 1) +
+  geom_line(mapping = aes(year, us_rate),  data = avg, size = 1) +
+  scale_y_continuous(trans = "sqrt", breaks = c(5, 25, 125, 300)) + 
+  ggtitle("Cases per 10,000 by state") + 
+  xlab("") + ylab("") +
+  geom_text(data = data.frame(x = 1955, y = 50), 
+            mapping = aes(x, y, label="US average"), 
+            color="black") + 
+  geom_vline(xintercept=1963, col = "blue")
+
+
+
+
+
+Outliers
+# ===================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*************************************************************************************
+2. Data Science: Statistics with R
+*************************************************************************************
+
+case studies: financial crisis, forecasting election results, understanding heredity, building a baseball team
+
+
+
+
+Probability
+# ===================================================================================
+
+rep: generate urn
+sample: pick bead at random
+
+eg.
+beads <- rep(c("red", "blue"), times = c(2,3))
+
+eg.
+sample(beads, 1)
+
+
+
+
+
+Monte Carlo simulation
+# ===================================================================================
+
+We want to repeat this experiment an infinite number of times, but it is impossible to repeat forever.
+
+we repeat the experiment a large enough number of times to make the results practically equivalent to repeating forever. 
+This is an example of a Monte Carlo simulation.
+
+
+replicate: perform monte carlo simulation
+
+eg.
+B <- 10000
+events <- replicate(B, sample(beads, 1))
+
+
+table: see the distribution
+
+eg.
+tab <- table(events)
+
+prop.table: gives us the proportions
+
+eg.
+prop.table(tab)
+
+
+
+
+Set the random seed
+# ===================================================================================
+
+set.seed(1986)
+
+
+
+
+With and without replacement
+# ===================================================================================
+
+eg.
+events <- sample(beads, B, replace = TRUE)
+prop.table(table(events))
+
+
+
+
+
+Combination and permutation
+# ===================================================================================
+
+paste: create strings by joining smaller strings
+
+eg.
+number <- "Three"
+suit <- "Hearts"
+paste(number, suit)
+#> [1] "Three Hearts"
+
+
+paste: also work on pairs of vectors element-wise
+
+eg.
+paste(letters[1:5], as.character(1:5))
+#> [1] "a 1" "b 2" "c 3" "d 4" "e 5"
+
+
+expand.grid: give us all the combinations of entries of two vectors
+
+eg.
+expand.grid(pants = c("blue", "black"), shirt = c("white", "grey", "plaid"))
+
+
+eg. generate a deck of cards
+
+suits <- c("Diamonds", "Clubs", "Hearts", "Spades")
+numbers <- c("Ace", "Deuce", "Three", "Four", "Five", "Six", "Seven", 
+             "Eight", "Nine", "Ten", "Jack", "Queen", "King")
+deck <- expand.grid(number=numbers, suit=suits)
+deck <- paste(deck$number, deck$suit)
+
+
+
+
+permutation
+# ===================================================================================
+
+permutations (from gtools package)
+
+eg.
+library(gtools)
+permutations(3, 2)
+
+eg.
+all_phone_numbers <- permutations(10, 7, v = 0:9)
+n <- nrow(all_phone_numbers)
+index <- sample(n, 5)
+all_phone_numbers[index,]
+#>      [,1] [,2] [,3] [,4] [,5] [,6] [,7]
+#> [1,]    1    3    8    0    6    7    5
+#> [2,]    2    9    1    6    4    8    0
+#> [3,]    5    1    6    0    9    8    2
+#> [4,]    7    4    6    0    2    8    1
+#> [5,]    4    6    5    9    2    8    0
+
+
+
+
+
+combination
+# ===================================================================================
+
+combinations(3,2)
+
+
+eg. compute the probability of a Natural 21 in Blackjack
+
+aces <- paste("Ace", suits)
+
+facecard <- c("King", "Queen", "Jack", "Ten")
+facecard <- expand.grid(number = facecard, suit = suits)
+facecard <- paste(facecard$number, facecard$suit)
+
+hands <- combinations(52, 2, v = deck)
+mean(hands[,1] %in% aces & hands[,2] %in% facecard)
+#> [1] 0.0483
+
+
+
+
+
+
+Monty Hall problem
+# ===================================================================================
+
+eg.
+B <- 10000
+monty_hall <- function(strategy){
+  doors <- as.character(1:3)
+  prize <- sample(c("car", "goat", "goat"))
+  prize_door <- doors[prize == "car"]
+  my_pick  <- sample(doors, 1)
+  show <- sample(doors[!doors %in% c(my_pick, prize_door)],1)
+  stick <- my_pick
+  stick == prize_door
+  switch <- doors[!doors%in%c(my_pick, show)]
+  choice <- ifelse(strategy == "stick", stick, switch)
+  choice == prize_door
+}
+stick <- replicate(B, monty_hall("stick"))
+mean(stick)
+#> [1] 0.342
+switch <- replicate(B, monty_hall("switch"))
+mean(switch)
+#> [1] 0.668
+
+
+
+
+
+
+Birthday problem
+# ===================================================================================
+
+duplicated: returns TRUE whenever an element of a vector is a duplicate
+eg.
+duplicated(c(1,2,3,1,4,3,5))
+
+eg.
+n <- 50
+bdays <- sample(1:365, n, replace = TRUE)
+
+
+
+eg. calculate exact probability not monte carlo
+exact_prob <- function(n){
+  prob_unique <- seq(365,365-n+1)/365 
+  1 - prod( prob_unique)
+}
+eprob <- sapply(n, exact_prob)
+qplot(n, prob) + geom_line(aes(n, eprob), col = "red")
+
+
+
+
+
+
+
+
+
 
 
 
@@ -591,43 +1988,11 @@ as.integer(class(1)) # integer
 class(1L) # integer
 
 
-Data frames
-# ===================================================================================
-
-loading the dslabs library and loading the murders dataset using the data function:
-
-library(dslabs)
-data(murders)
-
-class(murders)
-#> [1] "data.frame"
-
-
-
-Examining an object
-# ===================================================================================
-
-str is useful for finding out more about the structure of an object:
-
-str(murders)
-
-head(murders)
-
-
-
-The accessor: $
-# ===================================================================================
-
-murders$population
-
-names(murders)
-
 
 
 
 Vectors: numerics, characters, and logical
 # ===================================================================================
-
 
 ?Comparison # 查看logical operator
 
@@ -1407,6 +2772,22 @@ power
 Power is the probability of detecting an effect when there is a true effect to find. 
 Power increases as sample size increases, 
 because larger sample size means smaller standard error.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
