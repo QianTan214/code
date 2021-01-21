@@ -1,6 +1,6 @@
 
 *************************************************************************************
-1. R
+1. Data Science: R
 *************************************************************************************
 
 
@@ -755,6 +755,8 @@ check notes online
 
 
 
+
+
 *************************************************************************************
 2. Data Science: Data Visualisation
 *************************************************************************************
@@ -973,9 +975,25 @@ Quantile-quantile plots
 
 QQ-plot
 
+pnorm函数中的p表示Probability，它的功能是，在正态分布的PDF曲线上，
+返回从负无穷到q的积分，其中这个q指的是一个Z-score
+
+pnorm函数还能使用lower.tail参数，如果lower.tail设置为FALSE，
+那么pnorm()函数返回的积分就是从q到正无穷区间的PDF下的曲线面积
+
 eg.
-pnorm(-1.96)
-#> [1] 0.025
+
+pnorm(2)
+# [1] 0.9772499
+
+pnorm(2, mean = 5, sd = 3)
+# [1] 0.1586553
+
+pnorm(2, mean = 5, sd = 3, lower.tail = FALSE)
+# [1] 0.8413447
+
+1 - pnorm(2, mean = 5, sd = 3, lower.tail = FALSE)
+# [1] 0.1586553
 
 
 eg. inverse function
@@ -1645,24 +1663,39 @@ dat %>%
 
 
 
-Outliers
+summary
 # ===================================================================================
 
+IQR = inter quartile range
+
+The difference between the 3rd and 1st quartile (or 75th and 25th percentiles)
+
+eg. outlier
+q3 <- qnorm(0.75)
+q1 <- qnorm(0.25)
+iqr <- q3 - q1
+r <- c(q1 - 1.5*iqr, q3 + 1.5*iqr)
+r
+#> [1] -2.7  2.7
+
+
+eg.
+max_height <- quantile(outlier_example, 0.75) + 3*IQR(outlier_example)
+max_height
+#>  75% 
+#> 6.91
 
 
 
 
+Median absolute deviation
+# ===================================================================================
 
+median absolute deviation (MAD)
 
-
-
-
-
-
-
-
-
-
+eg.
+mad(outlier_example)
+#> [1] 0.237
 
 
 
@@ -1675,10 +1708,11 @@ Outliers
 
 
 *************************************************************************************
-2. Data Science: Statistics with R
+3. Data Science: Statistics with R
 *************************************************************************************
 
-case studies: financial crisis, forecasting election results, understanding heredity, building a baseball team
+case studies: financial crisis, forecasting election results, 
+understanding heredity, building a baseball team
 
 
 
@@ -1702,13 +1736,17 @@ sample(beads, 1)
 Monte Carlo simulation
 # ===================================================================================
 
-We want to repeat this experiment an infinite number of times, but it is impossible to repeat forever.
+We want to repeat this experiment an infinite number of times, 
+but it is impossible to repeat forever.
 
-we repeat the experiment a large enough number of times to make the results practically equivalent to repeating forever. 
-This is an example of a Monte Carlo simulation.
+Monte Carlo simulation
+we repeat the experiment a large enough number of times to 
+make the results practically equivalent to repeating forever. 
 
 
 replicate: perform monte carlo simulation
+permits us to repeat the same task any number of times
+
 
 eg.
 B <- 10000
@@ -1720,10 +1758,15 @@ table: see the distribution
 eg.
 tab <- table(events)
 
+
 prop.table: gives us the proportions
 
 eg.
 prop.table(tab)
+
+
+use Monte Carlo simulations to estimate probabilities 
+when it is hard to compute the exact ones
 
 
 
@@ -1732,12 +1775,25 @@ Set the random seed
 # ===================================================================================
 
 set.seed(1986)
+编号设定可以随意
 
-
+> set.seed(1)
+> runif(5)
+[1] 0.2655087 0.3721239 0.5728534 0.9082078 0.2016819
+> set.seed(2)
+> runif(5)
+[1] 0.1848823 0.7023740 0.5733263 0.1680519 0.9438393
+> set.seed(1)
+> runif(5)
+[1] 0.2655087 0.3721239 0.5728534 0.9082078 0.2016819
 
 
 With and without replacement
 # ===================================================================================
+
+by default, select without replacement
+
+sample function can be used without the use of replicate
 
 eg.
 events <- sample(beads, B, replace = TRUE)
@@ -1749,6 +1805,9 @@ prop.table(table(events))
 
 Combination and permutation
 # ===================================================================================
+
+construct a deck of cards, use expand.grid and paste
+
 
 paste: create strings by joining smaller strings
 
@@ -1764,6 +1823,7 @@ paste: also work on pairs of vectors element-wise
 eg.
 paste(letters[1:5], as.character(1:5))
 #> [1] "a 1" "b 2" "c 3" "d 4" "e 5"
+
 
 
 expand.grid: give us all the combinations of entries of two vectors
@@ -1783,14 +1843,24 @@ deck <- paste(deck$number, deck$suit)
 
 
 
+
 permutation
 # ===================================================================================
 
 permutations (from gtools package)
+C10,7
 
 eg.
 library(gtools)
 permutations(3, 2)
+#>      [,1] [,2]
+#> [1,]    1    2
+#> [2,]    1    3
+#> [3,]    2    1
+#> [4,]    2    3
+#> [5,]    3    1
+#> [6,]    3    2
+
 
 eg.
 all_phone_numbers <- permutations(10, 7, v = 0:9)
@@ -1804,6 +1874,10 @@ all_phone_numbers[index,]
 #> [4,]    7    4    6    0    2    8    1
 #> [5,]    4    6    5    9    2    8    0
 
+v argument: 0和9之间的数
+
+nrow function
+
 
 
 
@@ -1811,10 +1885,19 @@ all_phone_numbers[index,]
 combination
 # ===================================================================================
 
+如21点, 用combinations, 顺序不重要
+1/13 * 16/51 = 0.02
+
+
+eg.
 combinations(3,2)
+#>      [,1] [,2]
+#> [1,]    1    2
+#> [2,]    1    3
+#> [3,]    2    3
 
 
-eg. compute the probability of a Natural 21 in Blackjack
+eg. probability of a Natural 21 in Blackjack
 
 aces <- paste("Ace", suits)
 
@@ -1826,6 +1909,24 @@ hands <- combinations(52, 2, v = deck)
 mean(hands[,1] %in% aces & hands[,2] %in% facecard)
 #> [1] 0.0483
 
+
+
+
+Monte Carlo Natural 21
+# ===================================================================================
+
+eg.
+
+blackjack <- function(){
+   hand <- sample(deck, 2)
+  (hand[1] %in% aces & hand[2] %in% facecard) | 
+    (hand[2] %in% aces & hand[1] %in% facecard)
+}
+
+B <- 10000
+results <- replicate(B, blackjack())
+mean(results)
+#> [1] 0.0475
 
 
 
@@ -1863,13 +1964,43 @@ mean(switch)
 Birthday problem
 # ===================================================================================
 
+生日问题，可replacement
+
 duplicated: returns TRUE whenever an element of a vector is a duplicate
+
 eg.
 duplicated(c(1,2,3,1,4,3,5))
 
 eg.
 n <- 50
 bdays <- sample(1:365, n, replace = TRUE)
+
+
+eg.
+B <- 10000
+same_birthday <- function(n){
+  bdays <- sample(1:365, n, replace=TRUE)
+  any(duplicated(bdays))
+}
+results <- replicate(B, same_birthday(50))
+mean(results)
+#> [1] 0.969
+
+
+
+eg.create a look-up table
+
+compute_prob <- function(n, B=10000){
+  results <- replicate(B, same_birthday(n))
+  mean(results)
+}
+
+n <- seq(1,60)
+prob <- sapply(n, compute_prob)
+
+library(tidyverse)
+prob <- sapply(n, compute_prob)
+qplot(n, prob)
 
 
 
@@ -1886,17 +2017,198 @@ qplot(n, prob) + geom_line(aes(n, eprob), col = "red")
 
 
 
+Infinity in practice
+# ===================================================================================
+
+eg.
+B <- 10^seq(1, 5, len = 100)
+compute_prob <- function(B, n=25){
+  same_day <- replicate(B, same_birthday(n))
+  mean(same_day)
+}
+prob <- sapply(B, compute_prob)
+qplot(log10(B), prob, geom = "line")
+
+
+
+
+
+Theoretical distributions as approximations
+# ===================================================================================
+
+For example, it does not make sense to ask what is the probability 
+that a normally distributed value is 70. 
+Instead, we define probabilities for intervals. 
+We thus could ask what is the probability that someone is between 69.5 and 70.5.
+
+intervals that include exactly one round number
+
+
+dnorm: probability density for the normal distribution
+
+rnorm: 生成随机数
+
+eg.
+n <- length(x)
+m <- mean(x)
+s <- sd(x)
+simulated_heights <- rnorm(n, m, s)
+
+
+eg.
+x <- seq(-4, 4, length.out = 100) # length.out：向量中元素数目
+qplot(x, f, geom = "line", data = data.frame(x, f = dnorm(x)))
+
+
+
+
+14 Random variables
+# ===================================================================================
+
+eg.
+beads <- rep( c("red", "blue"), times = c(2,3))
+X <- ifelse(sample(beads, 1) == "blue", 1, 0)
 
 
 
 
 
 
+15 Statistical Inference
+# ===================================================================================
+
+15.2.1 The sample average
+# ===================================================================================
+
+15.2.3 Polling versus forecasting
+# ===================================================================================
+
+
+15.2.4 Properties of our estimate: expected value and standard error
+# ===================================================================================
+
+X¯ is a random variable
+
+expected value of the average X¯ is:
+E(X¯) = p
+
+standard error of the average X¯ is:
+SE(X¯) = sqrt(p*(1-p)/N)
+
+we can make the standard error as small as we want by increasing N
+
+
+We can also use other random variable equations to determine
+expected value of the sum of draws E(S) and standard error of the sum of draws SE(S)
+E(S)=Np 
+SE(S)=sqrt(Np(1−p))
+
+
+
+
+15.4 Central Limit Theorem in practice
+# ===================================================================================
+
+estimate of the standard error:
+
+SE^(X¯)=sqrt(X¯(1−X¯)/N) # little hat denotes estimates
+
+
+Code: Computing the probability of  X¯ being within 0.01 of p:
+x_hat <- 0.48
+se <- sqrt(x_hat*(1-x_hat)/25)
+se
+#> [1] 0.0999
+pnorm(0.01/se) - pnorm(-0.01/se)
+#> [1] 0.0797
+
+margin of error：
+defined as 2 times the standard error of the estimate  X¯ 
+1.96*se
+#> [1] 0.196
+
+pnorm(1.96)-pnorm(-1.96)
+#> [1] 0.95
+
+There is about 95% chance that  X¯ will be within two standard errors 
+of the actual parameter  p
+在定义margin of error时，95%是最常用的数
 
 
 
 
 
+15.4.1 A Monte Carlo simulation
+# ===================================================================================
+
+p <- 0.45    # unknown p to estimate
+N <- 1000
+
+# simulate one poll of size N and determine x_hat
+x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+x_hat <- mean(x)
+
+# simulate B polls of size N and determine average x_hat
+B <- 10000    # number of replicates
+N <- 1000    # sample size per replicate
+x_hat <- replicate(B, {
+    x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+    mean(x)
+})
+
+mean(x_hat)
+#> [1] 0.45
+sd(x_hat)
+#> [1] 0.0157
+
+
+
+Code: Histogram and QQ-plot of Monte Carlo results
+
+library(tidyverse)
+library(gridExtra)
+p1 <- data.frame(x_hat = x_hat) %>%
+    ggplot(aes(x_hat)) +
+    geom_histogram(binwidth = 0.005, color = "black")
+p2 <- data.frame(x_hat = x_hat) %>%
+    ggplot(aes(sample = x_hat)) +
+    stat_qq(dparams = list(mean = mean(x_hat), sd = sd(x_hat))) +
+    geom_abline() +
+    ylab("X_hat") +
+    xlab("Theoretical normal")
+grid.arrange(p1, p2, nrow=1)
+
+
+
+
+15.4.2 The spread
+# ===================================================================================
+2 * p- 1
+
+
+
+
+15.4.3 Bias: why not run a very large poll?
+# ===================================================================================
+
+systematic errors in polling are called bias
+
+
+Code: Plotting margin of error in an extremely large poll over a range of values of p
+
+library(tidyverse)
+N <- 100000
+p <- seq(0.35, 0.65, length = 100)
+SE <- sapply(p, function(x) 2*sqrt(x*(1-x)/N))
+data.frame(p = p, SE = SE) %>%
+    ggplot(aes(p, SE)) +
+    geom_line()
+
+
+
+
+15.6 Confidence intervals
+# ===================================================================================
 
 
 
@@ -2162,33 +2474,10 @@ facet_wrap(~col)
 
 
 
-time series plot
-# ===================================================================================
-
-geom_line()
-ggplot automatically group by colours
-
-geom_text()
-theme()
 
 
 
 
-transformations
-# ===================================================================================
-
-log transformations
-log2 
-log10 used in population
-
-
-modes
-local modes
-
-bimodal
-
-scale_x_continuous(trans="log2")
-scale_y_continuous(trans="log2")
 
 
 
@@ -2244,68 +2533,6 @@ weight参数in ggplot
 
 
 
-ecological fallacy
-# ===================================================================================
-
-limit参数 in scale_x_continuous
-
-breaks参数
-
-
-
-introduction to data visualisation principles
-# ===================================================================================
-
-
-encode data using visual cues
-# ===================================================================================
-
-
-know when to include zero
-# ===================================================================================
-
-do not distort quantatiles
-# ===================================================================================
-
-order by a meaningful value
-# ===================================================================================
-
-show the data
-# ===================================================================================
-
-add jitter
-alpha blending
-
-
-ease comparisons using common axes
-# ===================================================================================
-
-keep axes the same when comparing
-
-align plots
-横图纵向比较，纵图横向比较
-
-
-consider transformations
-# ===================================================================================
-
-visual cues should be adjacent
-# ===================================================================================
-
-scale_color_manual(values=color_blind_friendly_cols)
-
-
-
-slope charts
-# ===================================================================================
-
-geom_lines
-
-
-
-encode a thrid variable
-# ===================================================================================
-
 
 case study vaccine
 # ===================================================================================
@@ -2329,10 +2556,6 @@ ylab("")
 xlab("")
 
 
-avoid pseudo and gratuitous 3D plots
-# ===================================================================================
-
-gratuitous不必要的
 
 
 avoid too many significant digits
@@ -2360,41 +2583,6 @@ options(digits=n)
 Data Science: Probability
 
 
-introduction to probability
-# ===================================================================================
-
-financial crisis 2008
-
-event: 如pick a red bead
-
-Pr(A)
-
-
-monte carlo simulation
-# ===================================================================================
-
-random number generators
-sample()
-
-rep()
-c()
-
-replicate() # repeat same task any times we want
-
-如：
-B <- 10000
-events <- replicate(B, sample(beads,1))
-
-tab <- table(events) # see the distribution
-prop.table(tab)
-
-
-sample function by default without replacement
-set replace = TRUE
-
-eg.
-events <- sample(beads, B, replace=TRUE)
-prop.table(table(events))
 
 
 
