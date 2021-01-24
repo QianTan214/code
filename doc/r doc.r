@@ -59,10 +59,13 @@ factors
 
 levels(murders$region) # factor data type use levels function
 
-R stores these levels as integers and keeps a map to keep track of the labels. This is more memory efficient than storing all the characters
+R存储levels as integers and keeps a map to keep track of the labels. 
+相比于储存characters，更节省内存
 
-reorder:
-we want levels of the region by the total number of murders rather than alphabetical order
+
+reorder通常用在绘图中，比如ggplot中绘条形图，可使x轴按y轴数值大小排序；
+比如横轴为age,纵轴为money，
+可写为：aes(x=reorder(age,money),y=money)，即按money对age排序
 
 eg.
 region <- murders$region
@@ -71,11 +74,14 @@ region <- reorder(region, value, FUN = sum)
 levels(region)
 #> [1] "Northeast"     "North Central" "West"          "South"
 
+eg.
+mutate(state = reorder(state, error))
+
+
 
 
 lists
 # ===================================================================================
-
 
 Data frames are a special case of lists
 you can store any combination of different types
@@ -90,7 +96,8 @@ record2 <- list("John Doe", 1234)
 
 
 If a list does not have names, you cannot extract the elements with $, 
-but you can still use the brackets method and instead of providing the variable name, you provide the list index
+but you can still use the brackets method 
+and instead of providing the variable name, you provide the list index
 
 eg. 
 record2[[1]]
@@ -288,6 +295,25 @@ which(murders$state%in%c("New York", "Florida", "Texas"))
 
 
 
+排序函数区别：
+# ===================================================================================
+
+1、sort是直接对向量排序，返回原数值
+
+2、order先对数值排序，然后返回排序后各数值的索引
+
+3、rank返回原数据各项排名
+
+4、arrange是plyr包中的，可对dataframe按列排序，仍返回dataframe
+
+5、reorder用在绘图中，比如ggplot中绘条形图，可使x轴按y轴数值大小排序；
+比如横轴为age,纵轴为money，可写为：aes(x=reorder(age,money),y=money)，
+即按money对age排序
+
+
+
+
+
 Basic plots
 # ===================================================================================
 
@@ -356,12 +382,11 @@ if(a!=0){
 ifelse
 
 eg.
-
 a <- 0
 ifelse(a > 0, 1/a, NA)
 #> [1] NA
 
-
+eg.
 no_nas <- ifelse(is.na(na_example), 0, na_example)
 
 
@@ -607,8 +632,8 @@ arrange
 arrange: order the entire table
 we decide which column to sort by
 
-eg. order the states by population size
-murders %>% arrange(population) %>% head()
+eg. 
+murders %>% arrange(population) %>% head() # order the states by population size
 
 eg.
 murders %>% arrange(desc(rate)) # in descending order
@@ -776,10 +801,10 @@ geom_bar, and geom_histogram
 Aesthetic mappings
 # ===================================================================================
 
-whereas mappings use data from specific observations and need to be inside aes()
+mappings use data from specific observations and need to be inside aes()
 
-operations we want to affect all the points the same way 
-do not need to be included inside aes
+operations we want to affect all the points the same way do not 
+need to be included inside aes
 
 
 eg.
@@ -796,19 +821,19 @@ p_test <- p + geom_text(aes(population/10^6, total, label = abb))
 Global vs local aesthetic mappings
 # ===================================================================================
 
-define a mapping in ggplot, all the geometries that are added as layers 
+aes在ggplot里，是全局，all the geometries that are added as layers 
 will default to this mapping
 
 eg.
-p <- murders %>% ggplot(aes(population/10^6, total, label = abb))
+p <- murders %>% ggplot(aes(population/10^6, total, label = abb)) # aes在ggplot里
 
 
 we can override the global mapping by defining a new mapping within each layer
-These local definitions override the global
+local override global
 
 eg.
 p + geom_point(size = 3) +  
-  geom_text(aes(x = 10, y = 800, label = "Hello there!"))
+  geom_text(aes(x = 10, y = 800, label = "Hello there!")) # aes在geom_text里
 
 
 eg. log scale
@@ -835,12 +860,13 @@ ggtitle("US Gun Murders in 2010")
 p + geom_point(size = 3, color ="blue")
 
 
-A nice default behavior of ggplot2 is that if we assign a categorical variable to color, 
-it automatically assigns a different color to each category and also adds a legend.
+如果想assign a categorical variable to color, ggplot会自动assign a different color 
+to each category and also adds a legend
 
+eg.
 p + geom_point(aes(col=region), size = 3)
 
-To avoid automatically adding legend we set the geom_point argument show.legend = FALSE
+如果想避免自动加legend，可以设置geom_point argument show.legend = FALSE
 
 
 
@@ -981,7 +1007,7 @@ pnorm函数中的p表示Probability，它的功能是，在正态分布的PDF曲
 pnorm函数还能使用lower.tail参数，如果lower.tail设置为FALSE，
 那么pnorm()函数返回的积分就是从q到正无穷区间的PDF下的曲线面积
 
-eg.
+eg.pnorm
 
 pnorm(2)
 # [1] 0.9772499
@@ -996,7 +1022,10 @@ pnorm(2, mean = 5, sd = 3, lower.tail = FALSE)
 # [1] 0.1586553
 
 
-eg. inverse function
+eg. qnorm
+
+简单来说，qnorm是正态分布累积分布函数(CDF,Cumulative Distribution Function）的反函数，
+也就是说它可以视为pnorm的反函数，这里的q指的是quantile，即分位数。
 
 qnorm(0.975)
 #> [1] 1.96
@@ -1080,7 +1109,7 @@ tab
 eg.
 tab %>% ggplot(aes(region, proportion)) + geom_bar(stat = "identity")
 
-
+stat = "identity" ：indicate that the height of the bar should match the value
 
 
 
@@ -1526,9 +1555,7 @@ from inferences about the group to which those individuals belong
 Data visualization principles
 # ===================================================================================
 
-coord_flip()
-
-reorder function
+直接 + coord_flip() # 翻转x，y轴
 
 eg.
 heights %>% 
@@ -1828,6 +1855,23 @@ paste(letters[1:5], as.character(1:5))
 
 expand.grid: give us all the combinations of entries of two vectors
 
+
+eg.
+x <- 1:3
+> y <- 1:3
+> expand.grid(x,y)
+  Var1 Var2
+1    1    1
+2    2    1
+3    3    1
+4    1    2
+5    2    2
+6    3    2
+7    1    3
+8    2    3
+9    3    3
+
+
 eg.
 expand.grid(pants = c("blue", "black"), shirt = c("white", "grey", "plaid"))
 
@@ -1876,7 +1920,7 @@ all_phone_numbers[index,]
 
 v argument: 0和9之间的数
 
-nrow function
+nrow: number of rows
 
 
 
@@ -2047,12 +2091,7 @@ intervals that include exactly one round number
 dnorm: probability density for the normal distribution
 
 rnorm: 生成随机数
-
-eg.
-n <- length(x)
-m <- mean(x)
-s <- sd(x)
-simulated_heights <- rnorm(n, m, s)
+如rnorm(5,0,1), 以N(0,1)的正态分布，分别列出5个值
 
 
 eg.
@@ -2066,8 +2105,11 @@ qplot(x, f, geom = "line", data = data.frame(x, f = dnorm(x)))
 # ===================================================================================
 
 eg.
-beads <- rep( c("red", "blue"), times = c(2,3))
+beads <- rep(c("red", "blue"), times = c(2,3))
 X <- ifelse(sample(beads, 1) == "blue", 1, 0)
+
+
+
 
 
 
@@ -2210,6 +2252,410 @@ data.frame(p = p, SE = SE) %>%
 15.6 Confidence intervals
 # ===================================================================================
 
+ggplot
+geom_smooth
+
+pnorm(1.96) - pnorm(-1.96)
+#> [1] 0.95
+
+Code: geom_smooth confidence interval example
+
+eg.
+data("nhtemp")
+data.frame(year = as.numeric(time(nhtemp)), temperature = as.numeric(nhtemp)) %>%
+    ggplot(aes(year, temperature)) +
+    geom_point() +
+    geom_smooth() +
+    ggtitle("Average Yearly Temperatures in New Haven")
+
+
+Code: Solving for  z  with qnorm
+
+z <- qnorm(0.995)    # calculate z to solve for 99% confidence interval
+pnorm(qnorm(0.995))    # demonstrating that qnorm gives the z value for a given probability
+pnorm(qnorm(1-0.995))    # demonstrating symmetry of 1-qnorm
+pnorm(z) - pnorm(-z)    # demonstrating that this z value gives correct probability for interval
+
+
+
+
+
+15.6.1 A Monte Carlo simulation
+# ===================================================================================
+
+Code: Monte Carlo simulation of confidence intervals
+
+eg.
+N <- 1000
+B <- 10000
+inside <- replicate(B, {
+  x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+  x_hat <- mean(x)
+  se_hat <- sqrt(x_hat * (1 - x_hat) / N)
+  between(p, x_hat - 1.96 * se_hat, x_hat + 1.96 * se_hat)
+})
+mean(inside)
+#> [1] 0.948
+
+
+
+15.6.2 The correct language
+# ===================================================================================
+
+Saying the p has a 95% chance of being between this and that
+is technically an incorrect statement because p is not random
+
+
+
+15.8 Power
+# ===================================================================================
+
+If we are trying to predict the result of an election, 
+then a confidence interval that includes a spread of 0 (a tie) is not helpful.
+
+
+
+
+15.9 p-values
+# ===================================================================================
+
+null hypothesis
+
+N <- 100
+z <- sqrt(N)*0.02/0.5
+1 - (pnorm(z) - pnorm(-z))
+#> [1] 0.689
+
+
+
+
+
+Chapter 16 Statistical models
+# ===================================================================================
+
+
+16.1 Poll aggregators
+# ===================================================================================
+
+eg.
+d <- 0.039
+Ns <- c(1298, 533, 1342, 897, 774, 254, 812, 324, 1291, 1056, 2172, 516)
+p <- (d+1)/2
+
+# calculate confidence intervals of the spread
+confidence_intervals <- sapply(Ns, function(N){
+    X <- sample(c(0,1), size=N, replace=TRUE, prob = c(1-p, p))
+    X_hat <- mean(X)
+    SE_hat <- sqrt(X_hat*(1-X_hat)/N)
+    2*c(X_hat, X_hat - 2*SE_hat, X_hat + 2*SE_hat) - 1
+})
+
+# generate a data frame storing results
+polls <- data.frame(poll = 1:ncol(confidence_intervals),
+                    t(confidence_intervals), sample_size = Ns)
+names(polls) <- c("poll", "estimate", "low", "high", "sample_size")
+polls
+
+
+Code: Calculating the spread of combined polls
+
+d_hat <- polls %>%
+    summarize(avg = sum(estimate*sample_size) / sum(sample_size)) %>%
+    .$avg
+
+p_hat <- (1+d_hat)/2
+moe <- 2*1.96*sqrt(p_hat*(1-p_hat)/sum(polls$sample_size))   
+round(d_hat*100,1)
+round(moe*100, 1)
+
+
+
+
+16.1.1 Poll data
+# ===================================================================================
+
+Code: Generating simulated poll data
+
+library(dslabs)
+data(polls_us_election_2016)
+names(polls_us_election_2016)
+
+# keep only national polls from week before election with a grade considered reliable
+polls <- polls_us_election_2016 %>%
+    filter(state == "U.S." & enddate >= "2016-10-31" &
+               (grade %in% c("A+", "A", "A-", "B+") | is.na(grade)))
+
+# add spread estimate
+polls <- polls %>%
+    mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
+
+# compute estimated spread for combined polls
+d_hat <- polls %>%
+    summarize(d_hat = sum(spread * samplesize) / sum(samplesize)) %>%
+    .$d_hat
+
+# compute margin of error
+p_hat <- (d_hat+1)/2
+moe <- 1.96 * 2 * sqrt(p_hat*(1-p_hat)/sum(polls$samplesize))
+
+# histogram of the spread
+polls %>%
+    ggplot(aes(spread)) +
+    geom_histogram(color="black", binwidth = .01)
+
+
+
+note: moe is margin of error
+
+
+
+Code: Investigating poll data and pollster bias
+
+# number of polls per pollster in week before election
+polls %>% group_by(pollster) %>% summarize(n())
+
+# plot results by pollsters with at least 6 polls
+polls %>% group_by(pollster) %>%
+    filter(n() >= 6) %>%
+    ggplot(aes(pollster, spread)) +
+    geom_point() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# standard errors within each pollster
+polls %>% group_by(pollster) %>%
+    filter(n() >= 6) %>%
+    summarize(se = 2 * sqrt(p_hat * (1-p_hat) / median(samplesize)))
+
+
+
+
+16.2 Data-driven models
+# ===================================================================================
+
+eg.
+# collect last result before the election for each pollster
+one_poll_per_pollster <- polls %>% group_by(pollster) %>%
+    filter(enddate == max(enddate)) %>%      # keep latest poll
+    ungroup()
+
+# histogram of spread estimates
+one_poll_per_pollster %>%
+    ggplot(aes(spread)) + geom_histogram(binwidth = 0.01)
+
+# construct 95% confidence interval
+results <- one_poll_per_pollster %>%
+    summarize(avg = mean(spread), se = sd(spread)/sqrt(length(spread))) %>%
+    mutate(start = avg - 1.96*se, end = avg + 1.96*se)
+round(results*100, 1)
+
+
+
+
+
+16.4 Bayesian statistics
+# ===================================================================================
+
+16.4.1 Bayes theorem
+# ===================================================================================
+
+16.5 Bayes theorem simulation
+# ===================================================================================
+
+Code: Monte Carlo simulation
+
+prev <- 0.00025
+N <- 100000
+outcome <- sample(c("Disease","Healthy"), N, replace = TRUE, prob = c(prev, 1 - prev))
+
+
+Note that there are very few people with the disease:
+
+N_D <- sum(outcome == "Disease")
+N_D
+#> [1] 23
+N_H <- sum(outcome == "Healthy")
+N_H
+#> [1] 99977
+
+
+accuracy <- 0.99
+test <- vector("character", N)
+test[outcome == "Disease"]  <- sample(c("+", "-"), N_D, replace = TRUE, 
+                                    prob = c(accuracy, 1 - accuracy))
+test[outcome == "Healthy"]  <- sample(c("-", "+"), N_H, replace = TRUE, 
+                                    prob = c(accuracy, 1 - accuracy))
+
+
+table(outcome, test)
+#>          test
+#> outcome       -     +
+#>   Disease     0    23
+#>   Healthy 99012   965
+
+
+
+
+16.6 Hierarchical models
+# ===================================================================================
+
+In a Bayesian framework, the first level is called a prior distribution 
+and the second the sampling distribution.
+
+τ：sd of the population  
+σ: sd of our observed data  
+
+review!!!!!
+
+mu and tau summarize what we would predict for Florida before seeing any polls
+
+
+
+
+
+16.8.1 Bayesian approach
+# ===================================================================================
+
+spread d∼N(μ,τ):
+describes our best guess in the absence of polling data
+We set μ=0  and τ=0.035 using historical data
+
+average of observed data  X¯∣d∼N(d,σ): 
+describes randomness due to sampling and the pollster effect
+
+posterior distribution is normal, we can report a 95% credible interval 
+that has a 95% chance of overlapping the parameter using E(p∣Y) and SE(p∣Y)
+
+
+eg.
+mu <- 0
+tau <- 0.035
+sigma <- results$se
+Y <- results$avg
+B <- sigma^2 / (sigma^2 + tau^2)
+
+posterior_mean <- B*mu + (1-B)*Y
+posterior_se <- sqrt( 1/ (1/sigma^2 + 1/tau^2))
+
+posterior_mean
+#> [1] 0.0281
+posterior_se
+#> [1] 0.00615
+
+
+we have a credible interval of:
+
+posterior_mean + c(-1.96, 1.96)*posterior_se
+#> [1] 0.0160 0.0401
+
+
+1 - pnorm(0, posterior_mean, posterior_se)
+#> [1] 1
+
+
+
+
+16.8.2 The general bias
+# ===================================================================================
+
+t is common to see a general bias that affects all pollsters in the same way
+This bias cannot be predicted or measured before the election
+We will include a term in later models to account for this variability
+
+
+
+16.8.3 Mathematical representations of models
+# ===================================================================================
+
+str_detect
+
+left_join
+
+
+
+
+
+16.8.4 Predicting the electoral college
+# ===================================================================================
+
+review!!!
+
+
+
+16.8.5 Forecasting
+# ===================================================================================
+
+Code: Trend across time for several pollsters
+
+eg.
+polls_us_election_2016 %>%
+    filter(state == "U.S." & enddate >= "2016-07-01") %>%
+    group_by(pollster) %>%
+    filter(n() >= 10) %>%
+    ungroup() %>%
+    mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100) %>%
+    ggplot(aes(enddate, spread)) +
+    geom_smooth(method = "loess", span = 0.1) +
+    geom_point(aes(color = pollster), show.legend = FALSE, alpha = 0.6)
+
+
+
+
+16.10 The t-distribution
+# ===================================================================================
+
+review!!!
+
+
+
+
+15.10.2 Two-by-two tables
+# ===================================================================================
+
+eg.
+tab <- matrix(c(3,1,1,3),2,2)
+rownames(tab)<-c("Poured Before","Poured After")
+colnames(tab)<-c("Guessed before","Guessed after")
+tab
+#>               Guessed before Guessed after
+#> Poured Before              3             1
+#> Poured After               1             3
+
+fisher.test(tab, alternative="greater")$p.value
+#> [1] 0.243
+
+
+
+
+15.10.3 Chi-square Test
+# ===================================================================================
+
+The function chisq.test() takes a two-by-two table and 
+returns the p-value from the chi-squared test.
+
+eg.
+chisq_test <- two_by_two %>% select(-awarded) %>% chisq.test()
+chisq_test$p.value
+#> [1] 0.0509
+
+
+
+
+15.10.4 The odds ratio
+# ===================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2285,8 +2731,6 @@ x <- seq(1, n)
 sum(x)
 
 
-rep
-sample
 
 
 Data types
@@ -2329,8 +2773,9 @@ levels(murders$region) # 用levels查看
 list
 # ===================================================================================
 
-list function：
+list函数：创建一个列表
 
+eg.
 record <- list(name = "John Doe",
              student_id = 1234,
              grades = c(95, 82, 91, 97, 93), # function c
@@ -2343,11 +2788,11 @@ lists without variable names:
 record2 <- list("John Doe", 1234)
 
 If a list does not have names, you cannot extract the elements with $, 
-but you can still use the brackets method and instead of providing the variable name, 
-you provide the list index, like this:
+but you can still use the brackets method by providing the list index:
 
 record2[[1]]
 #> [1] "John Doe"
+
 
 
 
@@ -2492,6 +2937,7 @@ theme(axis.text.x = element_text(angle=90, hjust=1))
 x 轴坐标竖着显示
 
 reorder(fac, value, FUN=mean)
+
 
 fill颜色参数
 
@@ -2699,7 +3145,9 @@ n <- seq(1,60)
 
 for loop rarely used in R
 
-sapply():
+sapply:
+
+eg.
 x <- 1:10
 sapply(x, sqrt) # 当然sqrt不需要这样做，只是举例
 
