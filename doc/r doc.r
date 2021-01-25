@@ -808,11 +808,12 @@ need to be included inside aes
 
 
 eg.
-murders %>% ggplot() + 
-  geom_point(aes(x = population/10^6, y = total))
+murders %>% 
+ggplot() + 
+geom_point(aes(x = population/10^6, y = total))
 
 eg.
-p_test <- p + geom_text(aes(population/10^6, total, label = abb))
+p_test = p + geom_text(aes(population/10^6, total, label = abb))
 
 
 
@@ -2657,6 +2658,49 @@ chisq_test$p.value
 
 
 
+*************************************************************************************
+5. Data Science: Data Wrangling
+*************************************************************************************
+
+convert data from its raw form to the tidy form
+
+
+21 Reshaping data
+# ===================================================================================
+
+tidyr package
+
+
+21.1 gather
+# ===================================================================================
+
+gather function assumes that column names are characters
+
+eg.
+new_tidy_data <- gather(wide_data, year, fertility, `1960`:`2015`)
+
+eg.
+new_tidy_data <- wide_data %>% gather(year, fertility, `1960`:`2015`)
+
+
+
+21.2 spread
+# ===================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2933,13 +2977,10 @@ stratify and boxplot
 
 goem_boxplot() 无参数
 
-theme(axis.text.x = element_text(angle=90, hjust=1))
-x 轴坐标竖着显示
+theme(axis.text.x = element_text(angle=90, hjust=1)) # x 轴坐标竖着显示
+
 
 reorder(fac, value, FUN=mean)
-
-
-fill颜色参数
 
 geom_point(show.legend=False)
 
