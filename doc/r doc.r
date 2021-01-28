@@ -2652,6 +2652,137 @@ chisq_test$p.value
 
 
 
+*************************************************************************************
+Data Science: Linear Regression
+*************************************************************************************
+
+
+17 Correlation
+# ===================================================================================
+
+eg.
+galton_heights <- GaltonFamilies %>%
+  filter(gender == "male") %>%
+  group_by(family) %>%
+  sample_n(1) %>%
+  ungroup() %>%
+  select(father, childHeight) %>%
+  rename(son = childHeight)
+
+
+note: sample_n(1)
+
+sample函数区别：
+sample()抽样函数
+sample_n()随机抽取指定数目的样本
+sample_frac()随机抽取指定百分比的样本
+默认都为不放回抽样，通过设置replacement=TRUE可改为放回抽样：
+
+eg.
+sample_n(moviedata,10)#随机无重复的取10行数据
+sample_n(moviedata,20,replace=TRUE)#随机有重复的取20行数据
+sample_n(moviedata,10,weight = imdb_score)#随机无重复的以imdb_score做权重取10行数据
+
+sample_frac(moviedata,0.01)#随机无重复的取1%的数据
+sample_frac(moviedata,1.3,replace=TRUE)#随机有重复的取总行数的1.3倍的数据
+
+
+
+
+
+17.2 The correlation coefficient
+# ===================================================================================
+
+eg.
+rho <- mean(scale(x)*scale(y))
+galton_heights %>% summarize(r = cor(father, son)) %>% pull(r)
+
+
+note: cor函数
+
+
+eg.
+# Monte Carlo simulation to show distribution of sample correlation
+B <- 1000
+N <- 25
+R <- replicate(B, {
+    sample_n(galton_heights, N, replace = TRUE) %>%
+    summarize(r = cor(father, son)) %>%
+    pull(r)
+})
+qplot(R, geom = "histogram", binwidth = 0.05, color = I("black"))
+
+mean(R)
+sd(R)
+
+# QQ-plot to evaluate whether N is large enough
+data.frame(R) %>%
+    ggplot(aes(sample = R)) +
+    stat_qq() +
+    geom_abline(intercept = mean(R), slope = sqrt((1-mean(R)^2)/(N-2)))
+
+
+
+Also, note that because the sample correlation is an average of independent draws, 
+the central limit actually applies. Therefore, for large enough N, 
+the distribution of R is approximately normal with expected value ρ,
+and standard deviation is  sqrt((1-r^2)/(N-2))
+
+
+
+
+18 Linear models
+# ===================================================================================
+
+Sabermetics
+
+score more runs (points)
+
+plate appearance (PA)
+
+make an out (failure)
+
+hit it hard (HR)
+
+Bases on balls (BB): the pitcher fails to throw the ball through a predefined area 
+considered to be hittable (the strikezone), so the batter is permitted to go to first base
+
+Single: Batter hits the ball and gets to first base
+
+Double (2B): Batter hits the ball and gets to second base
+
+Triple (3B): Batter hits the ball and gets to third base
+
+Home Run (HR): Batter hits the ball and goes all the way home and scores a run
+
+steal a base (SB)
+
+hit (H)
+
+at bat (AB)
+
+
+eg.
+
+library(Lahman)
+
+Teams %>% filter(yearID %in% 1961:2001) %>%
+  mutate(HR_per_game = HR / G, R_per_game = R / G) %>%
+  ggplot(aes(HR_per_game, R_per_game)) + 
+  geom_point(alpha = 0.5)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

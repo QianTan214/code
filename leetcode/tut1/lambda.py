@@ -25,3 +25,13 @@ countries.sort(key = lambda x: -x[2]) # 根据人口从大到小排序
 
 for country in countries[:3]:
     print(country)
+
+
+
+
+# lambda表达式用在复合函数里
+
+def quadratic(a, b, c):
+    return lambda x: a*x*x + b*x + c
+
+print(quadratic(1,-1, 2)(5)) # 这种写法
