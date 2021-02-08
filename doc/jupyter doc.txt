@@ -1,0 +1,82 @@
+
+
+
+术语
+# ===================================================================================
+
+kernel：表示计算引擎，用于执行 notebook 中的代码块
+cell ：单元块
+
+In 是 Input 的缩写。如果代码块运行时间有点久，它会显示 In [*] ，表示当前代码块正在运行中
+
+绿色表示编辑模式，蓝色表示命令模式
+
+
+
+
+快捷键
+# ===================================================================================
+
+快捷键: Ctrl+Shift+P
+Esc: 命令模式
+Enter: 编辑模式
+
+A:上方插入一个新的 cell
+B: 下方插入新的cell
+
+M: 变为 Markdown cell
+Y: 变为 code cell
+
+连续按两次D: 删除当前cell
+Z: 撤销操作
+
+Shift加上Up或者Down: 一次选择多个 cells
+Shift + M: 合并多个cells
+
+
+
+
+
+
+Markdown Keyword
+# ===================================================================================
+
+eg.
+# This is a level 1 heading
+## This is a level 2 heading
+This is some plain text that forms a paragraph.
+Add emphasis via **bold** and __bold__, or *italic* and _italic_.
+Paragraphs must be separated by an empty line.
+* Sometimes we want to include lists.
+* Which can be indented.
+1. Lists can also be numbered.
+2. For ordered lists.
+[It is possible to include hyperlinks](https://www.example.com)
+Inline code uses single backticks: `foo()`, and code blocks use triple backticks:
+​```
+bar()
+​```
+Or can be indented by 4 spaces:
+foo()
+And finally, adding images is easy: ![Alt text](https://www.example.com/image.jpg)
+
+
+如果想添加图片，有三种做法：
+
+1. 使用网络上的图片，添加其网络链接 URL，
+比如上述例子就是这种做法，URL 是 https://www.example.com/image.jpg
+
+2. 采用一个本地 URL，那么图片就只能使用在该 notebook 中，比如在同一个 git 仓库中
+
+3. 菜单栏选择 “Edit->Insert Image"，
+这种做法会将图片转换为字符串形式并存储在 .ipynb 文件中，这种做法会增加 ipynb 文件的大小
+
+
+
+
+
+Kernel
+# ===================================================================================
+
+除了 Python 语言，
+Juypter notebook 支持的 kernel 还包括其他超过一百种语言，比如 Java、C、R、Julia 等等
