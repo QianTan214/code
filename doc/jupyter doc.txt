@@ -33,7 +33,7 @@ Z: 撤销操作
 Shift加上Up或者Down: 一次选择多个 cells
 Shift + M: 合并多个cells
 
-
+comment: Ctrl + /
 
 
 

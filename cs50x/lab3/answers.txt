@@ -1,0 +1,14 @@
+sort1 uses: bubble sort
+
+How do you know?: it takes much less time to sort a sorted text than to sort a random and reversed text.
+
+sort2 uses: merge sort
+
+How do you know?: sort2 is generally faster than sort3. Because merge sort is generally faster than selection sort, so sort2 is merge sort.
+
+sort3 uses: selection sort
+
+How do you know?: based on above analysis, sort3 is selection sort.
+
+
+
