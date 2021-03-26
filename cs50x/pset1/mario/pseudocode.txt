@@ -1,0 +1,6 @@
+prompt the user to input an integer between 1 to 8 inclusive
+if the user enters an integer as required
+then build a pyramid made of "#" of size integer * integer
+if the user enters an integer not as required
+prompt the user the message input an integer between 1 to 8 inclusive until they enter a required integer
+then build a pyramid made of "#" of size integer * interger
