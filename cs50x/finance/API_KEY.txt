@@ -1,0 +1,1 @@
+输入：export API_KEY=pk_cabbb321a2474545a8e70011c0746a0d

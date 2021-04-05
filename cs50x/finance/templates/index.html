@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Homepage
+{% endblock %}
+
+{% block main %}
+    <h5>Hello, {{ username }}</h5>
+
+    <br>
+
+    {% if message is defined %}
+        <p>{{ message }}</p>
+    {% else %}
+        <table class="table table-striped">
+            <thead>
+                <th>Symbol</th>
+                <th>Company</th>
+                <th>Shares</th>
+                <th>Price</th>
+                <th>TOTAL</th>
+            </thead>
+
+            <tfoot>
+                <tr>
+                    <td colspan = "4"></td>
+                    <td class = "font-weight-bold">${{ total }}</td>
+                </tr>
+            </tfoot>
+
+            <tbody>
+                {% for portfolio in user_portfolio %}
+                <tr>
+                    <td>{{ portfolio.symbol }}</td>
+                    <td>{{ portfolio.stock_company }}</td>
+                    <td>{{ portfolio.shares }}</td>
+                    <td>{{ portfolio.current_price }}</td>
+                    <td>{{ portfolio.total_value }}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td class = "text-left" colspan = "4">CASH</td>
+                    <td class = "font-weight-bold">${{ cash_balance }}</td>
+                </tr>
+            </tbody>
+        </table>
+    {% endif %}
+
+{% endblock %}
